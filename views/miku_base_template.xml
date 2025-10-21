@@ -1,0 +1,145 @@
+<odoo>
+  <template id="miku_base_template" name="Miku Base">
+      <style>
+        /* Global Brand Theme (Tiju's Academy) */
+        :root {
+          --ta-primary: #082567;
+          --ta-primary-alt: #0d3a9c;
+          /* Button palette (light blue) */
+          --ta-button-bg: #3ba7ff;
+          --ta-button-hover: #1f8bf0;
+          --ta-button-text: #ffffff;
+          --ta-accent: #ff8f1c;
+          --ta-accent-alt: #ffab47;
+          --ta-success: #2fa27c;
+          --ta-bg: #ffffff;
+          --ta-bg-soft: #f2f7fb;
+          --ta-bg-alt: #e9f1f8;
+          --ta-border: #d1dfe8;
+          --ta-border-strong: #b7ccd8;
+          --ta-text: #1d2f38;
+          --ta-text-muted: #5d6b73;
+          --ta-focus-ring: rgba(8,37,103,.35);
+          --ta-shadow: 0 4px 16px -4px rgba(8,37,103,.18);
+          --ta-radius-sm: 6px;
+          --ta-radius: 12px;
+          --ta-radius-lg: 20px;
+        }
+        body {
+          background: linear-gradient(180deg, var(--ta-bg-soft) 0%, var(--ta-bg) 65%);
+          font-family: 'M PLUS Rounded 1c', 'Arial', sans-serif;
+          color: var(--ta-text);
+          -webkit-font-smoothing: antialiased;
+        }
+        .miku-container {
+          max-width: 1200px;
+          margin: 28px auto 48px;
+          padding: 28px 32px 40px;
+          background: rgba(255,255,255,0.9);
+          backdrop-filter: blur(4px);
+          border: 1px solid var(--ta-border);
+          border-radius: var(--ta-radius-lg);
+          box-shadow: var(--ta-shadow);
+          position: relative;
+        }
+        /* Optional narrow variant for forms (add class="narrow" where needed) */
+        .miku-container.narrow {max-width:700px;}
+        h1, h2, h3, h4 {color: var(--ta-primary); font-weight:600;}
+        h1 {letter-spacing:.5px;}
+        a {color: var(--ta-primary);}
+        a:hover {color: var(--ta-primary-alt);}
+        .btn-miku, .btn-primary { 
+          --bs-btn-bg: var(--ta-button-bg); 
+          --bs-btn-border-color: var(--ta-button-bg); 
+          --bs-btn-color: var(--ta-button-text); 
+          --bs-btn-hover-bg: var(--ta-button-hover); 
+          --bs-btn-hover-border-color: var(--ta-button-hover); 
+          --bs-btn-focus-shadow-rgb: 59,167,255; 
+          background: var(--ta-button-bg); 
+          border-color: var(--ta-button-bg); 
+          color: var(--ta-button-text); 
+        }
+        .btn-outline-primary { 
+          --bs-btn-color: var(--ta-button-bg); 
+          --bs-btn-border-color: var(--ta-button-bg); 
+          --bs-btn-hover-bg: var(--ta-button-bg); 
+          --bs-btn-hover-border-color: var(--ta-button-bg); 
+          --bs-btn-hover-color: var(--ta-button-text); 
+        }
+        .btn-accent { 
+          background: var(--ta-accent); 
+          border:1px solid var(--ta-accent); 
+          color:#fff; 
+          border-radius: var(--ta-radius-sm); 
+          font-weight:600; 
+        }
+        .btn-accent:hover {background: var(--ta-accent-alt); border-color: var(--ta-accent-alt);}
+  .badge-primary {background: var(--ta-primary);}        
+  /* Align Bootstrap utility classes with brand color */
+  .bg-primary {background-color: var(--ta-primary) !important; border-color: var(--ta-primary) !important;}
+  .text-primary {color: var(--ta-primary) !important;}
+        /* Utility */
+        .shadow-soft {box-shadow: var(--ta-shadow);}        
+        /* Make container fluid when holding certain layout blocks */
+        .miku-container:has(.layout-modes-wrapper) {max-width:100%; padding:32px 0 48px; background:transparent; box-shadow:none; border:none;}
+        @supports not(selector(:has(*))) {
+          /* Fallback: allow override class manual if :has unsupported */
+          .miku-container.full-width {max-width:100%; padding:32px 0 48px; background:transparent; box-shadow:none; border:none;}
+        }
+        @media (max-width: 767.98px){
+          .miku-container {padding:20px 16px 32px;}
+        }
+
+        /* ===== Global Header ===== */
+        .qa-brand-header {position:sticky; top:0; z-index:30; background:var(--ta-primary); color:#fff; box-shadow:0 2px 6px -2px rgba(0,0,0,.25);}
+  .qa-brand-header-inner {max-width:1400px; margin:0 auto; padding:.65rem 1.25rem; display:flex; align-items:center; gap:.9rem;}
+  .qa-brand-logo-wrap {display:flex; align-items:center; gap:.35rem; text-decoration:none;}
+  /* Logo removed for now */
+        .qa-brand-title {font-size:1.05rem; font-weight:600; letter-spacing:.5px; color:#fff; margin:0; line-height:1.2;}
+        .qa-brand-sub {font-size:.6rem; text-transform:uppercase; opacity:.85; letter-spacing:.18em; margin-top:-2px;}
+        .qa-nav {margin-left:auto; display:flex; align-items:center; gap:.75rem;}
+        .qa-nav a {color:#f4faff; text-decoration:none; font-size:.7rem; font-weight:600; padding:.5rem .8rem; border:1px solid rgba(255,255,255,.18); border-radius:30px; line-height:1; letter-spacing:.5px; transition:all .18s ease; backdrop-filter:blur(2px);}
+        .qa-nav a:hover {background:#fff; color:var(--ta-primary); box-shadow:0 3px 10px -4px rgba(0,0,0,.3);} 
+  .qa-nav a.qa-cta {background:var(--ta-button-bg); border-color:var(--ta-button-bg); color:var(--ta-button-text);}
+  .qa-nav a.qa-cta:hover {background:var(--ta-button-hover); border-color:var(--ta-button-hover); color:var(--ta-button-text);}
+        .qa-mobile-toggle {display:none;}
+        @media (max-width: 899.98px){
+          .qa-nav {gap:.4rem;}
+          .qa-nav a {padding:.45rem .65rem; font-size:.62rem;}
+          .qa-brand-header-inner {padding:.55rem .9rem;}
+          .qa-brand-title {font-size:.95rem;}
+          .qa-brand-sub {display:none;}
+        }
+        @media (max-width: 599.98px){
+          .qa-nav {display:none;}
+          .qa-mobile-toggle {display:flex; margin-left:auto; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); width:40px; height:40px; border-radius:10px; align-items:center; justify-content:center; cursor:pointer;}
+          .qa-mobile-toggle span {width:18px; height:2px; background:#fff; position:relative; display:block;}
+          .qa-mobile-toggle span:before, .qa-mobile-toggle span:after {content:""; position:absolute; left:0; width:100%; height:100%; background:#fff;}
+          .qa-mobile-toggle span:before {top:-6px;} .qa-mobile-toggle span:after {top:6px;}
+        }
+        /* Space below header when container becomes full width layout */
+        .qa-brand-header + .miku-container {margin-top:0;}
+      </style>
+    <header class="qa-brand-header">
+      <div class="qa-brand-header-inner">
+        <a href="/quiz" class="qa-brand-logo-wrap">
+          <div>
+            <div class="qa-brand-title">Tiju's Academy</div>
+            <div class="qa-brand-sub">Assessment Portal</div>
+          </div>
+        </a>
+        <nav class="qa-nav">
+          <a href="/quiz">Quizzes</a>
+          <t t-if="not request.env.user or not request.env.user.has_group('quiz_engine_pro.group_quiz_student')">
+            <a href="/web" target="_blank">Dashboard</a>
+          </t>
+          <a href="/quiz" class="qa-cta">Start Now</a>
+        </nav>
+        <div class="qa-mobile-toggle"><span></span></div>
+      </div>
+    </header>
+    <div class="miku-container">
+      <t t-raw="0"/>
+    </div>
+  </template>
+</odoo>

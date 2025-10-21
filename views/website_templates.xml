@@ -1,0 +1,1146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Quiz List Template -->
+    <template id="quiz_list" name="Quiz List">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 offset-lg-2">
+                            <h1 class="text-center mb-4">Available Quizzes</h1>
+                            <t t-if="not quizzes">
+                                <div class="alert alert-info text-center">
+                                    <h4>No quizzes available at the moment</h4>
+                                    <p>Please check back later for new quizzes.</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="row">
+                                    <t t-foreach="quizzes" t-as="quiz">
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <h5 class="card-title" t-field="quiz.name"/>
+                                                    <p class="card-text" t-field="quiz.description"/>
+                                                    <div class="quiz-info">
+                                                        <small class="text-muted">
+                                                            <i class="fa fa-question-circle"/> <t t-esc="quiz.total_questions"/> questions
+                                                            <t t-if="quiz.time_limit">
+                                                                | <i class="fa fa-clock-o"/> <t t-esc="quiz.time_limit"/> minutes
+                                                            </t>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer">
+                                                    <a t-attf-href="/quiz/#{quiz.slug}#{token and ('?token=' + token) or ''}" class="btn btn-primary btn-block">
+                                                        Start Quiz
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Quiz Detail Template -->
+    <template id="quiz_detail" name="Quiz Detail">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 offset-lg-2">
+                            <div class="text-center mb-4">
+                                <h1 t-field="quiz.name"/>
+                                <div class="quiz-description" t-field="quiz.description"/>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Quiz Information</h5>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Questions:</strong> <t t-esc="quiz.total_questions"/></li>
+                                        <li><strong>Total Points:</strong> <t t-esc="quiz.total_points"/></li>
+                                        <t t-if="quiz.time_limit">
+                                            <li><strong>Time Limit:</strong> <t t-esc="quiz.time_limit"/> minutes</li>
+                                        </t>
+                                        <li><strong>Passing Score:</strong> <t t-esc="quiz.passing_score"/>%</li>
+                                    </ul>
+                                    
+                                    <form t-attf-action="/quiz/#{quiz.slug}/start#{token and ('?token=' + token) or ''}" method="post" class="mt-4">
+                                        <input type="hidden" name="token" t-att-value="token" t-if="token"/>
+                                        <div class="form-group mb-3">
+                                            <label for="participant_name">Your Name *</label>
+                                            <input type="text" name="participant_name" class="form-control" required="required"/>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label for="participant_email">Email (Optional)</label>
+                                            <input type="email" name="participant_email" class="form-control"/>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                                            Start Quiz
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Quiz Question Template -->
+    <template id="quiz_question" name="Quiz Question">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-10 offset-lg-1">
+                            <div class="quiz-header mb-4">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h2 t-field="quiz.name"/>
+                                        <p class="text-muted">Participant: <t t-esc="session.participant_name"/></p>
+                                    </div>
+                                    <div class="col-md-4 text-right">
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 t-attf-style="width: #{(question_index + 1) / len(quiz.question_ids) * 100}%"/>
+                                        </div>
+                                        <small class="text-muted">
+                                            Question <t t-esc="question_index + 1"/> of <t t-esc="len(quiz.question_ids)"/>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="question-content mb-4">
+                                        <h4>Question <t t-esc="question_index + 1"/></h4>
+                                        
+                                        <!-- Show question only once -->
+                                        <div class="question-text mb-4">
+                                            <div t-field="question.question_html"/>
+                                            <small class="text-muted">Points: <t t-esc="question.points"/></small>
+                                        </div>
+                                        
+                                        <form method="post" class="question-form">
+                                            <input type="hidden" name="session" t-att-value="session.session_token"/>
+                                            <input type="hidden" name="token" t-att-value="token" t-if="token"/>
+                                            
+                                            <!-- Multiple Choice Single -->
+                                            <t t-if="question.type == 'mcq_single'">
+                                                <div class="choices">
+                                                    <t t-foreach="question.choice_ids" t-as="choice">
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="radio" 
+                                                                   name="answer_data" t-att-value="choice.id" 
+                                                                   t-att-id="'choice_' + (choice.id or '')"/>
+                                                            <label class="form-check-label" t-att-for="'choice_' + (choice.id or '')">
+                                                                <t t-esc="choice.text"/>
+                                                            </label>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                            
+                                            <!-- Multiple Choice Multiple -->
+                                            <t t-if="question.type == 'mcq_multiple'">
+                                                <div class="choices">
+                                                    <t t-foreach="question.choice_ids" t-as="choice">
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox" 
+                                                                   name="answer_data" t-att-value="choice.id" 
+                                                                   t-att-id="'choice_' + (choice.id or '')"/>
+                                                            <label class="form-check-label" t-att-for="'choice_' + (choice.id or '')">
+                                                                <t t-esc="choice.text"/>
+                                                            </label>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                            
+                                            <!-- Fill in the Blanks -->
+                                            <t t-if="question.type == 'fill_blank'">
+                                                <div class="fill-blanks">
+                                                    <div class="question-content-with-blanks mb-4">
+                                                        <t t-if="question.question_html and '{blank}' in question.question_html">
+                                                            <!-- Render question HTML, replacing each {blank} with a numbered answer box -->
+                                                            <t t-set="blank_count" t-value="0"/>
+                                                            <t t-set="parts" t-value="question.question_html.split('{blank}')"/>
+                                                            <t t-foreach="parts" t-as="part" t-foreach-index="i">
+                                                                <t t-esc="part"/>
+                                                                <t t-if="i &lt; len(parts) - 1">
+                                                                    <t t-set="blank_count" t-value="blank_count + 1"/>
+                                                                    <span class="blank-label">Blank <t t-esc="blank_count"/>:</span>
+                                                                    <input type="text" class="form-control d-inline-block mx-1" style="width: auto; min-width: 120px; max-width: 200px;"
+                                                                           t-att-name="'blank_' + str(blank_count)" placeholder="Enter answer"/>
+                                                                </t>
+                                                            </t>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <!-- Fallback: render answer boxes for each blank defined -->
+                                                            <p>Fill in the missing words:</p>
+                                                            <t t-foreach="question.fill_blank_answer_ids" t-as="blank">
+                                                                <div class="form-group mb-3">
+                                                                    <label>Blank <t t-esc="blank.blank_number"/>:</label>
+                                                                    <input type="text" class="form-control" t-att-name="'blank_' + str(blank.blank_number)" placeholder="Enter your answer"/>
+                                                                </div>
+                                                            </t>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                            
+                                            <!-- Drag and Drop into Zones -->
+                                            <t t-if="question.type == 'drag_zone'">
+                                                <div class="quiz-drag-drop">
+                                                    <div class="alert alert-info mb-3">
+                                                        <strong>Instructions:</strong> Drag the tokens below into the correct zones.
+                                                    </div>
+                                                    
+                                                    <input type="hidden" name="drag_drop_data" value="[]"/>
+                                                    
+                                                    <div class="card mb-4">
+                                                        <div class="card-header">
+                                                            <h5 class="mb-0">Available Tokens</h5>
+                                                        </div>
+                                                        <div class="card-body tokens-container">
+                                                            <t t-foreach="question.drag_token_ids" t-as="token">
+                                                                <div class="draggable-token" 
+                                                                    t-att-data-token-id="token.id" draggable="true">
+                                                                <t t-esc="token.text"/>
+                                                                </div>
+                                                            </t>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <h5 class="mb-0">Drop Zones</h5>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="drop-zones-container">
+                                                                <t t-set="zone_count" t-value="len(question.drag_token_ids) if question.drag_token_ids else 3"/>
+                                                                <t t-foreach="range(1, zone_count + 1)" t-as="i">
+                                                                    <div class="drop-zone" t-att-data-zone-id="i">
+                                                                        <span class="zone-label">Zone <t t-esc="i"/></span>
+                                                                    </div>
+                                                                </t>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mt-3 text-end">
+                                                        <button type="button" class="btn btn-sm btn-secondary reset-tokens">
+                                                            <i class="fa fa-refresh"></i> Reset
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <script type="text/javascript">
+                                                    // Use vanilla JavaScript instead of jQuery to avoid $ not defined error
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        console.log("Vanilla JS script initialized");
+                                                        
+                                                        // Make tokens draggable
+                                                        var tokens = document.querySelectorAll('.draggable-token');
+                                                        var dropZones = document.querySelectorAll('.drop-zone');
+                                                        var tokensContainer = document.querySelector('.tokens-container');
+                                                        var resetButton = document.querySelector('.reset-tokens');
+                                                        
+                                                        tokens.forEach(function(token) {
+                                                            token.setAttribute('draggable', 'true');
+                                                            
+                                                            token.addEventListener('dragstart', function(e) {
+                                                                e.dataTransfer.setData('text/plain', this.getAttribute('data-token-id'));
+                                                                this.classList.add('dragging');
+                                                            });
+                                                        });
+                                                        
+                                                        // Drop zone events
+                                                        dropZones.forEach(function(zone) {
+                                                            zone.addEventListener('dragover', function(e) {
+                                                                e.preventDefault(); // Critical for allowing drop
+                                                                this.classList.add('drag-over');
+                                                            });
+                                                            
+                                                            zone.addEventListener('dragleave', function(e) {
+                                                                this.classList.remove('drag-over');
+                                                            });
+                                                            
+                                                            zone.addEventListener('drop', function(e) {
+                                                                e.preventDefault();
+                                                                this.classList.remove('drag-over');
+                                                                
+                                                                var tokenId = e.dataTransfer.getData('text/plain');
+                                                                var token = document.querySelector('.draggable-token[data-token-id="' + tokenId + '"]');
+                                                                
+                                                                if (token) {
+                                                                    this.appendChild(token);
+                                                                    token.classList.remove('dragging');
+                                                                    updateFormData();
+                                                                }
+                                                            });
+                                                        });
+                                                        
+                                                        // Reset button
+                                                        if (resetButton) {
+                                                            resetButton.addEventListener('click', function() {
+                                                                tokens.forEach(function(token) {
+                                                                    if (tokensContainer) {
+                                                                        tokensContainer.appendChild(token);
+                                                                    }
+                                                                });
+                                                                updateFormData();
+                                                            });
+                                                        }
+                                                        
+                                                        function updateFormData() {
+                                                            var data = [];
+                                                            dropZones.forEach(function(zone) {
+                                                                var zoneId = zone.getAttribute('data-zone-id');
+                                                                var zoneTokens = zone.querySelectorAll('.draggable-token');
+                                                                
+                                                                zoneTokens.forEach(function(token) {
+                                                                    data.push({
+                                                                        token_id: token.getAttribute('data-token-id'),
+                                                                        zone_id: zoneId
+                                                                    });
+                                                                });
+                                                            });
+                                                            
+                                                            var hiddenField = document.querySelector('input[name="drag_drop_data"]');
+                                                            if (hiddenField) {
+                                                                hiddenField.value = JSON.stringify(data);
+                                                            }
+                                                        }
+                                                    });
+                                                </script>
+                                            </t>
+                                            
+                                            <!-- Drag and Drop into Text -->
+                                            <t t-if="question.type == 'drag_into_text'">
+                                                <div class="quiz-drag-drop">
+                                                    <input type="hidden" name="drag_drop_data" value="[]"/>
+                                                    <div class="tokens-container">
+                                                        <div class="tokens-label">Available Tokens:</div>
+                                                        <t t-foreach="question.drag_token_ids" t-as="token">
+                                                            <div class="draggable-token" 
+                                                                 t-att-data-token-id="token.id">
+                                                                <t t-esc="token.text"/>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                    
+                                                    <div class="instructions mb-3">
+                                                        <strong>Instructions:</strong> Drag the tokens above into the blanks in the text below.
+                                                    </div>
+                                                    
+                                                    <div class="drag-text-container">
+                                                        <div class="drag-text-content">
+                                                            <t t-raw="question.question_html"/>
+                                                            
+                                                            <div class="drop-zones-container mt-3">
+                                                                <t t-foreach="question.drag_token_ids.mapped('correct_for_blank')" t-as="blank_num">
+                                                                    <t t-if="blank_num > 0">
+                                                                        <div class="drop-zone" t-att-data-zone-id="blank_num" style="display:inline-block; min-width:100px; margin-right:5px;">
+                                                                            <span class="zone-label">Blank <t t-esc="blank_num"/></span>
+                                                                        </div>
+                                                                    </t>
+                                                                </t>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="reset-button-container">
+                                                        <button type="button" class="btn btn-sm btn-secondary reset-tokens">
+                                                            <i class="fa fa-refresh"></i> Reset Tokens
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </t>
+
+                                            <!-- Match the Following (Classic Side-by-Side Click-to-Pair) -->
+                                            <t t-if="question.type == 'match'">
+                                                <div class="match-classic" data-match-question="1">
+                                                    <input type="hidden" name="answer_data" class="match-answer-data" value="[]"/>
+                                                    <div class="alert alert-info py-2 mb-3">
+                                                        <small><strong>Instructions:</strong> Click an item on the left, then click its matching item on the right. Each right item can be used only once. Click a paired left item again to unpair.</small>
+                                                    </div>
+                                                    <div class="row g-3">
+                                                        <div class="col-md-5">
+                                                            <h5 class="mb-2">Items</h5>
+                                                            <ul class="list-group match-left-list">
+                                                                <t t-foreach="question.match_pair_ids" t-as="pair">
+                                                                    <li class="list-group-item d-flex justify-content-between align-items-center match-left-item" t-att-data-left-id="pair.id">
+                                                                        <span class="match-left-text"><t t-esc="pair.left_text"/></span>
+                                                                        <span class="badge bg-secondary match-status" style="min-width:70px;">Unmatched</span>
+                                                                    </li>
+                                                                </t>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                                            <div class="text-center">
+                                                                <i class="fa fa-arrows-h fa-2x text-primary"></i>
+                                                                <p class="mt-2 small text-muted mb-0">Select Pairs</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-5">
+                                                            <h5 class="mb-2">Matches</h5>
+                                                            <ul class="list-group match-right-list">
+                                                                <t t-foreach="question.match_pair_ids" t-as="pair">
+                                                                    <li class="list-group-item match-right-item" t-att-data-right-id="pair.id">
+                                                                        <t t-esc="pair.right_text"/>
+                                                                    </li>
+                                                                </t>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-3 d-flex flex-wrap gap-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary match-reset">Reset</button>
+                                                        <div class="small text-muted" id="match-progress"></div>
+                                                    </div>
+                                                </div>
+                                                <style>
+                                                    .match-classic .list-group-item { cursor: pointer; user-select: none; }
+                                                    .match-classic .list-group-item.active-selection { outline: 2px solid #0d6efd; background:#e7f1ff; }
+                                                    .match-classic .list-group-item.paired { background:#e9ffe9; }
+                                                    .match-classic .match-right-item.used { opacity: .55; text-decoration: line-through; }
+                                                </style>
+                                                <script type="text/javascript">
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        const container = document.querySelector('.match-classic[data-match-question="1"]');
+                                                        if(!container) return; // safety
+                                                        const leftItems = container.querySelectorAll('.match-left-item');
+                                                        const rightList = container.querySelector('.match-right-list');
+                                                        const answerField = container.querySelector('.match-answer-data');
+                                                        const resetBtn = container.querySelector('.match-reset');
+                                                        const progressEl = container.querySelector('#match-progress');
+
+                                                        // Shuffle right side to avoid positional clues
+                                                        (function shuffleRight(){
+                                                            const items = Array.from(rightList.children);
+                                                            for(let i=items.length-1;i>0;i--){
+                                                                const j = Math.floor(Math.random()*(i+1));
+                                                                rightList.appendChild(items[j]);
+                                                                items.splice(j,1);
+                                                            }
+                                                        })();
+
+                                                        let pendingLeftId = null; // currently selected left item (waiting for right)
+                                                        const pairs = []; // {left_id, right_id}
+
+                                                        function updateAnswer(){
+                                                            answerField.value = JSON.stringify(pairs);
+                                                            const total = leftItems.length;
+                                                            const done = pairs.length;
+                                                            if(progressEl){ progressEl.textContent = `${done}/${total} paired`; }
+                                                        }
+
+                                                        function clearSelection(){
+                                                            leftItems.forEach(li=>li.classList.remove('active-selection'));
+                                                            pendingLeftId = null;
+                                                        }
+
+                                                        function unpairLeft(leftId){
+                                                            const idx = pairs.findIndex(p=>p.left_id===leftId);
+                                                            if(idx>-1){
+                                                                const rightId = pairs[idx].right_id;
+                                                                pairs.splice(idx,1);
+                                                                const leftEl = container.querySelector(`.match-left-item[data-left-id="${leftId}"]`);
+                                                                const rightEl = container.querySelector(`.match-right-item[data-right-id="${rightId}"]`);
+                                                                leftEl.classList.remove('paired');
+                                                                leftEl.querySelector('.match-status').textContent = 'Unmatched';
+                                                                if(rightEl){ rightEl.classList.remove('used'); }
+                                                                updateAnswer();
+                                                            }
+                                                        }
+
+                                                        leftItems.forEach(li => {
+                                                            li.addEventListener('click', () => {
+                                                                const leftId = parseInt(li.getAttribute('data-left-id'));
+                                                                if(li.classList.contains('paired')){
+                                                                    // unpair
+                                                                    unpairLeft(leftId);
+                                                                    return;
+                                                                }
+                                                                clearSelection();
+                                                                li.classList.add('active-selection');
+                                                                pendingLeftId = leftId;
+                                                            });
+                                                        });
+
+                                                        container.querySelectorAll('.match-right-item').forEach(ri => {
+                                                            ri.addEventListener('click', () => {
+                                                                if(ri.classList.contains('used')){ return; }
+                                                                if(pendingLeftId === null){ return; }
+                                                                const rightId = parseInt(ri.getAttribute('data-right-id'));
+                                                                // pair
+                                                                pairs.push({left_id: pendingLeftId, right_id: rightId});
+                                                                const leftEl = container.querySelector(`.match-left-item[data-left-id="${pendingLeftId}"]`);
+                                                                if(leftEl){
+                                                                    leftEl.classList.remove('active-selection');
+                                                                    leftEl.classList.add('paired');
+                                                                    leftEl.querySelector('.match-status').textContent = ri.textContent.trim();
+                                                                }
+                                                                ri.classList.add('used');
+                                                                pendingLeftId = null;
+                                                                updateAnswer();
+                                                            });
+                                                        });
+
+                                                        if(resetBtn){
+                                                            resetBtn.addEventListener('click', function(){
+                                                                pairs.splice(0,pairs.length);
+                                                                leftItems.forEach(li=>{ li.classList.remove('paired','active-selection'); li.querySelector('.match-status').textContent='Unmatched'; });
+                                                                container.querySelectorAll('.match-right-item').forEach(ri=>ri.classList.remove('used'));
+                                                                pendingLeftId = null;
+                                                                updateAnswer();
+                                                            });
+                                                        }
+
+                                                        updateAnswer();
+                                                    });
+                                                </script>
+                                            </t>
+
+                                            <!-- Single Line Text Box -->
+                                            <t t-if="question.type == 'text_box'">
+                                                <div class="text-box-question">
+                                                    <div class="form-group mb-3">
+                                                        <label for="text_answer" class="form-label">Your Answer:</label>
+                                                        <input type="text" name="answer_data" class="form-control" 
+                                                               id="text_answer" placeholder="Type your answer here"/>
+                                                    </div>
+                                                    <t t-if="question.allow_partial_match and question.keywords">
+                                                        <div class="alert alert-info">
+                                                            <small>
+                                                                <i class="fa fa-info-circle"></i> Hint: Your answer should include certain keywords.
+                                                            </small>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                            
+                                            <!-- Numerical Value -->
+                                            <t t-if="question.type == 'numerical'">
+                                                <div class="numerical-question">
+                                                    <div class="form-group mb-3">
+                                                        <label for="numerical_answer" class="form-label">Your Answer:</label>
+                                                        <input type="number" name="answer_data" class="form-control" 
+                                                               id="numerical_answer" step="any" placeholder="Enter a number"/>
+                                                    </div>
+                                                    <t t-if="question.numerical_tolerance > 0">
+                                                        <div class="alert alert-info">
+                                                            <small>
+                                                                <i class="fa fa-info-circle"></i> Your answer will be evaluated with a tolerance of ±<t t-esc="question.numerical_tolerance"/>.
+                                                            </small>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                            
+                                            <!-- Matrix Question -->
+                                            <t t-if="question.type == 'matrix'">
+                                                <div class="matrix-question">
+                                                    <input type="hidden" name="matrix_data" value="{}"/>
+                                                    
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th></th> <!-- Empty corner cell -->
+                                                                    <t t-foreach="question.matrix_column_ids" t-as="column">
+                                                                        <th class="text-center"><t t-esc="column.name"/></th>
+                                                                    </t>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <t t-foreach="question.matrix_row_ids" t-as="row">
+                                                                    <tr>
+                                                                        <th><t t-esc="row.name"/></th>
+                                                                        <t t-foreach="question.matrix_column_ids" t-as="column">
+                                                                            <td class="text-center">
+                                                                                <div class="form-check d-flex justify-content-center">
+                                                                                    <input type="checkbox" 
+                                                                                           class="form-check-input matrix-cell" 
+                                                                                           t-att-data-row-id="str(row.id)"
+                                                                                           t-att-data-col-id="str(column.id)"
+                                                                                           t-att-id="'cell_' + str(row.id) + '_' + str(column.id)"/>
+                                                                                </div>
+                                                                            </td>
+                                                                        </t>
+                                                                    </tr>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    
+                                                    <script type="text/javascript">
+                                                        document.addEventListener('DOMContentLoaded', function() {
+                                                            // Update hidden form field when matrix cells are clicked
+                                                            var matrixCells = document.querySelectorAll('.matrix-cell');
+                                                            var hiddenField = document.querySelector('input[name="answer_data"]');
+                                                            
+                                                            if (!hiddenField) {
+                                                                // Create the hidden field if it doesn't exist
+                                                                hiddenField = document.createElement('input');
+                                                                hiddenField.type = 'hidden';
+                                                                hiddenField.name = 'answer_data';
+                                                                document.querySelector('.matrix-question').appendChild(hiddenField);
+                                                            }
+                                                            
+                                                            var matrixData = {};
+                                                            
+                                                            matrixCells.forEach(function(cell) {
+                                                                cell.addEventListener('change', function() {
+                                                                    var rowId = this.getAttribute('data-row-id');
+                                                                    var colId = this.getAttribute('data-col-id');
+                                                                    var cellKey = 'cell_' + rowId + '_' + colId;
+                                                                    
+                                                                    matrixData[cellKey] = this.checked;
+                                                                    hiddenField.value = JSON.stringify(matrixData);
+                                                                });
+                                                            });
+                                                        });
+                                                    </script>
+                                                </div>
+                                            </t>
+
+                                            <!-- Dropdown in Text Question Type -->
+                                            <t t-if="question.type == 'dropdown_blank'">
+                                                <div class="dropdown-blank-question">
+                                                    <div class="question-text-container mb-4">
+                                                        <h4 class="mb-3"><t t-esc="question.name"/></h4>
+                                                        
+                                                        <!-- Parse text template and insert dropdowns inline -->
+                                                        <div class="inline-dropdowns-text">
+                                                            <t t-set="template_text" t-value="question.text_template or ''"/>
+                                                            <t t-set="template_text" t-value="template_text.replace('&lt;p&gt;', '').replace('&lt;/p&gt;', '')"/>
+                                                            
+                                                            <!-- Split text by placeholders -->
+                                                            <t t-set="parts" t-value="template_text.split('{{')"/>
+                                                            <span><t t-esc="parts[0]"/></span>
+                                                            
+                                                            <!-- Process each part after the first one -->
+                                                            <t t-foreach="parts[1:]" t-as="part">
+                                                                <t t-set="blank_parts" t-value="part.split('}}', 1)"/>
+                                                                <t t-if="len(blank_parts) == 2">
+                                                                    <t t-set="blank_number" t-value="int(blank_parts[0])"/>
+                                                                    <t t-set="remaining_text" t-value="blank_parts[1]"/>
+                                                                    
+                                                                    <!-- Find the corresponding blank -->
+                                                                    <t t-set="found_blank" t-value="False"/>
+                                                                    <t t-foreach="question.blank_ids" t-as="blank">
+                                                                        <t t-if="blank.blank_number == blank_number">
+                                                                            <t t-set="found_blank" t-value="blank"/>
+                                                                        </t>
+                                                                    </t>
+                                                                    
+                                                                    <!-- Render dropdown -->
+                                                                    <t t-if="found_blank">
+                                                                        <select class="form-select dropdown-blank-select d-inline mx-1" 
+                                                                               style="width:auto; min-width:120px; display:inline-block !important;"
+                                                                               t-att-name="'dropdown_blank_' + str(blank_number)" 
+                                                                               t-att-data-blank-id="found_blank.id">
+                                                                            <option value="">Select...</option>
+                                                                            <t t-foreach="found_blank.option_ids" t-as="option">
+                                                                                <option t-att-value="option.id"><t t-esc="option.label"/></option>
+                                                                            </t>
+                                                                        </select>
+                                                                    </t>
+                                                                    <t t-else="">
+                                                                        <span class="badge bg-warning">Blank {{<t t-esc="blank_number"/>}}</span>
+                                                                    </t>
+                                                                    
+                                                                    <!-- Add remaining text -->
+                                                                    <span><t t-esc="remaining_text"/></span>
+                                                                </t>
+                                                            </t>
+                                                        </div>
+                                                        
+                                                        <input type="hidden" name="dropdown_blank_data" value="[]"/>
+                                                    </div>
+                                                </div>
+                                                
+                                                <script type="text/javascript">
+                                                    $(function() {
+                                                        $('.dropdown-blank-select').on('change', function() {
+                                                            var data = [];
+                                                            $('.dropdown-blank-select').each(function() {
+                                                                if ($(this).val()) {
+                                                                    data.push({
+                                                                        blank_id: $(this).data('blank-id'),
+                                                                        option_id: $(this).val()
+                                                                    });
+                                                                }
+                                                            });
+                                                            $('input[name="dropdown_blank_data"]').val(JSON.stringify(data));
+                                                        });
+                                                    });
+                                                </script>
+                                            </t>
+
+                                            <!-- Drag and Drop Ordering -->
+                                            <t t-if="question.type == 'drag_order'">
+                                                <div class="drag-order-question">
+                                                    <div class="instructions mb-3">
+                                                        <p class="text-muted">
+                                                            <i class="fa fa-info-circle"></i>
+                                                            Drag and drop the items below to arrange them in the correct order.
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    <div class="sequence-items-container" t-att-data-question-id="question.id">
+                                                        <ul id="sequenceList" class="list-group">
+                                                            <t t-foreach="question.sequence_item_ids.sorted(key=lambda i: i.sequence)" t-as="item">
+                                                                <li class="list-group-item sequence-item" 
+                                                                    t-att-data-item-id="item.id"
+                                                                    draggable="true">
+                                                                    <div class="drag-handle">
+                                                                        <i class="fa fa-bars"></i>
+                                                                    </div>
+                                                                    <div class="sequence-item-label">
+                                                                        <t t-esc="item.label"/>
+                                                                    </div>
+                                                                </li>
+                                                            </t>
+                                                        </ul>
+                                                    </div>
+                                                    
+                                                    <input type="hidden" name="sequence_order_data" value="[]"/>
+                                                </div>
+                                                
+                                                <!-- Initialize the drag and drop functionality -->
+                                                <script type="text/javascript">
+                                                    $(function() {
+                                                        if (typeof initDragOrder === 'function') {
+                                                            initDragOrder();
+                                                        } else {
+                                                            console.error('Drag order JS not loaded!');
+                                                        }
+                                                    });
+                                                </script>
+                                            </t>
+
+                                            <!-- Step Sequencing Question Type -->
+                                            <t t-if="question.type == 'step_sequence'">
+                                                <div class="sequence-container">
+                                                    <!-- Question text -->
+                                                    <div class="question-text-container mb-4">
+                                                        <div t-field="question.question_html"/>
+                                                    </div>
+                                                    
+                                                    <!-- Instructions -->
+                                                    <div class="alert alert-info">
+                                                        <strong>Instructions:</strong> Arrange the steps in the correct order using the arrows.
+                                                    </div>
+                                                    
+                                                    <!-- Sequence list -->
+                                                    <div class="sequence-list">
+                                                        <t t-foreach="question.sequence_item_ids" t-as="step">
+                                                            <!-- Don't access step.type here -->
+                                                            <div class="sequence-item" t-att-data-step-id="step.id">
+                                                                <span class="step-number" t-esc="step_index + 1"/>
+                                                                <span class="step-label" t-esc="step.label"/>
+                                                                <div t-if="step.content" class="step-description" t-esc="step.content"/>
+                                                                <div class="sequence-buttons">
+                                                                    <button type="button" class="btn btn-primary btn-sm move-up">↑</button>
+                                                                    <button type="button" class="btn btn-primary btn-sm move-down">↓</button>
+                                                                </div>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                    
+                                                    <!-- Hidden input for data -->
+                                                    <input type="hidden" name="sequence_data" value="[]"/>
+                                                    
+                                                    <!-- Randomize button -->
+                                                    <div class="mt-3 text-end">
+                                                        <button type="button" class="btn btn-secondary reset-sequence">Randomize</button>
+                                                    </div>
+                                                </div>
+                                            </t>
+
+                                            <!-- Passage Question with flexible type checking -->
+                                            <t t-if="str(question.type) == 'passage' or (hasattr(question, 'atype') and str(question.atype) == 'passage')">
+                                                <div class="passage-question" t-att-data-passage-id="question.passage_ids and question.passage_ids[0].id or 0">
+                                                    <input type="hidden" name="answer_data" value="{}" />
+                                                    <!-- Debug info -->
+                                                    <div class="debug-info alert alert-info mb-3">
+                                                        <p><strong>Debug Info (visible to all for troubleshooting):</strong></p>
+                                                        <p>Question ID: <t t-esc="question.id"/></p>
+                                                        <p>Question Type: <t t-esc="question.type"/></p>
+                                                        <p>Type Field Type: <t t-esc="type(question.type).__name__"/></p>
+                                                        <p>Has Passages: <t t-esc="bool(question.passage_ids)"/></p>
+                                                        <p>Passage Count: <t t-esc="len(question.passage_ids) if question.passage_ids else 0"/></p>
+                                                        <p>Template Condition: <t t-esc="question.type == 'passage'"/></p>
+                                                        <p>Field Diagnostics: <t t-esc="field_diagnostics"/></p>
+                                                    </div>
+                                                    
+                                                    <div class="row passage-container">
+                                                        <!-- Left side: Passage content -->
+                                                        <div class="col-md-6">
+                                                            <div class="card mb-3">
+                                                                <div class="card-header bg-primary text-white">
+                                                                    <h4 class="m-0"><t t-esc="question.passage_ids[0].name if question.passage_ids else 'Reading Passage'"/></h4>
+                                                                </div>
+                                                                <div class="card-body passage-content">
+                                                                    <div t-raw="question.passage_ids and question.passage_ids[0].passage_content or ''" class="passage-text"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Right side: Sub-questions -->
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header bg-info text-white">
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <h4 class="m-0 sub-question-counter">Question 1</h4>
+                                                                        <div class="question-nav">
+                                                                            <span class="badge bg-light text-dark">
+                                                                                <span id="current-sub-q">1</span> of <span id="total-sub-q">
+                                                                                    <t t-esc="question.passage_ids and question.passage_ids[0].sub_question_ids and len(question.passage_ids[0].sub_question_ids) or 0"/>
+                                                                                </span>
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <!-- Sub-questions container -->
+                                                                    <div class="sub-questions-container" id="passage-question-form">
+                                                                        <!-- Sub-questions -->
+                                                                        <div class="sub-questions">
+                                                                            <t t-set="sub_index" t-value="0"/>
+                                                                            <t t-foreach="question.passage_ids and question.passage_ids[0].sub_question_ids or []" t-as="sub_q">
+                                                                                <div class="sub-question" 
+                                                                                     t-att-data-index="sub_index" 
+                                                                                     t-att-data-question-id="sub_q.id" 
+                                                                                     t-att-data-question-type="sub_q.question_type">
+                                                                                    
+                                                                                    <div class="sub-question-text mb-3" t-raw="sub_q.question_text"></div>
+                                                                                    
+                                                                                    <!-- Single choice question -->
+                                                                                    <t t-if="sub_q.question_type == 'mcq_single'">
+                                                                                        <div class="sub-question-choices">
+                                                                                            <t t-foreach="sub_q.choice_ids" t-as="choice">
+                                                                                                <div class="form-check mb-2">
+                                                                                                    <input type="radio" t-att-id="'choice_' + str(choice.id)"
+                                                                                                           t-att-name="'sub_q_' + str(sub_q.id)"
+                                                                                                           t-att-value="choice.id"
+                                                                                                           class="form-check-input"/>
+                                                                                                    <label class="form-check-label" t-att-for="'choice_' + str(choice.id)"
+                                                                                                           t-esc="choice.text"></label>
+                                                                                                </div>
+                                                                                            </t>
+                                                                                        </div>
+                                                                                    </t>
+                                                                                    
+                                                                                    <!-- Multiple choice question -->
+                                                                                    <t t-if="sub_q.question_type == 'mcq_multiple'">
+                                                                                        <div class="sub-question-choices">
+                                                                                            <t t-foreach="sub_q.choice_ids" t-as="choice">
+                                                                                                <div class="form-check mb-2">
+                                                                                                    <input type="checkbox" t-att-id="'choice_' + str(choice.id)"
+                                                                                                           t-att-name="'sub_q_' + str(sub_q.id) + '[]'"
+                                                                                                           t-att-value="choice.id"
+                                                                                                           class="form-check-input"/>
+                                                                                                    <label class="form-check-label" t-att-for="'choice_' + str(choice.id)"
+                                                                                                           t-esc="choice.text"></label>
+                                                                                                </div>
+                                                                                            </t>
+                                                                                        </div>
+                                                                                    </t>
+                                                                                    
+                                                                                    <!-- Short text answer -->
+                                                                                    <t t-if="sub_q.question_type == 'text_short'">
+                                                                                        <div class="form-group">
+                                                                                            <textarea class="form-control" rows="2"
+                                                                                                     t-att-name="'sub_q_' + str(sub_q.id)"
+                                                                                                     placeholder="Enter your answer here..."></textarea>
+                                                                                        </div>
+                                                                                    </t>
+                                                                                    
+                                                                                    <!-- Long text answer -->
+                                                                                    <t t-if="sub_q.question_type == 'text_long'">
+                                                                                        <div class="form-group">
+                                                                                            <textarea class="form-control" rows="5"
+                                                                                                     t-att-name="'sub_q_' + str(sub_q.id)"
+                                                                                                     placeholder="Enter your answer here..."></textarea>
+                                                                                        </div>
+                                                                                    </t>
+                                                                                </div>
+                                                                                <t t-set="sub_index" t-value="sub_index + 1"/>
+                                                                            </t>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="card-footer">
+                                                                    <!-- Navigation buttons -->
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <button type="button" class="btn btn-secondary prev-sub-question">
+                                                                            <i class="fa fa-arrow-left"></i> Previous
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-primary next-sub-question">
+                                                                            Next <i class="fa fa-arrow-right"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- JavaScript to handle sub-question navigation -->
+                                                    <script type="text/javascript">
+                                                        document.addEventListener('DOMContentLoaded', function() {
+                                                            // Initialize passage questions display
+                                                            var subQuestions = document.querySelectorAll('.sub-question');
+                                                            var currentIndex = 0;
+                                                            var totalQuestions = subQuestions.length;
+                                                            
+                                                            // Update displayed counts
+                                                            document.getElementById('total-sub-q').textContent = totalQuestions;
+                                                            document.getElementById('current-sub-q').textContent = currentIndex + 1;
+                                                            
+                                                            // Hide all sub-questions except the first one
+                                                            subQuestions.forEach(function(q, index) {
+                                                                if (index !== currentIndex) {
+                                                                    q.style.display = 'none';
+                                                                }
+                                                            });
+                                                            
+                                                            // Navigation button handlers
+                                                            var prevBtn = document.querySelector('.prev-sub-question');
+                                                            var nextBtn = document.querySelector('.next-sub-question');
+                                                            
+                                                            if (prevBtn) {
+                                                                prevBtn.addEventListener('click', function() {
+                                                                    if (currentIndex > 0) {
+                                                                        // Hide current question
+                                                                        subQuestions[currentIndex].style.display = 'none';
+                                                                        // Show previous question
+                                                                        currentIndex--;
+                                                                        subQuestions[currentIndex].style.display = 'block';
+                                                                        // Update counter
+                                                                        document.getElementById('current-sub-q').textContent = currentIndex + 1;
+                                                                        document.querySelector('.sub-question-counter').textContent = 'Question ' + (currentIndex + 1);
+                                                                        
+                                                                        // Update button states
+                                                                        updateButtonStates();
+                                                                    }
+                                                                });
+                                                            }
+                                                            
+                                                            if (nextBtn) {
+                                                                nextBtn.addEventListener('click', function() {
+                                                                    if (currentIndex &lt; totalQuestions - 1) {
+                                                                        // Hide current question
+                                                                        subQuestions[currentIndex].style.display = 'none';
+                                                                        // Show next question
+                                                                        currentIndex++;
+                                                                        subQuestions[currentIndex].style.display = 'block';
+                                                                        // Update counter
+                                                                        document.getElementById('current-sub-q').textContent = currentIndex + 1;
+                                                                        document.querySelector('.sub-question-counter').textContent = 'Question ' + (currentIndex + 1);
+                                                                        
+                                                                        // Update button states
+                                                                        updateButtonStates();
+                                                                    }
+                                                                });
+                                                            }
+                                                            
+                                                            // Function to update button states
+                                                            function updateButtonStates() {
+                                                                if (prevBtn) {
+                                                                    prevBtn.disabled = currentIndex === 0;
+                                                                }
+                                                                if (nextBtn) {
+                                                                    nextBtn.disabled = currentIndex === totalQuestions - 1;
+                                                                    // Change text for last question
+                                                                    if (currentIndex === totalQuestions - 1) {
+                                                                        nextBtn.innerHTML = '&lt;i class="fa fa-check"&gt;&lt;/i&gt; Finish Reading';
+                                                                    } else {
+                                                                        nextBtn.innerHTML = 'Next &lt;i class="fa fa-arrow-right"&gt;&lt;/i&gt;';
+                                                                    }
+                                                                }
+                                                            }
+                                                            
+                                                            // Initialize button states
+                                                            updateButtonStates();
+                                                            
+                                                            // Gather answers when form is submitted
+                                                            var form = document.querySelector('.question-form');
+                                                            if (form) {
+                                                                form.addEventListener('submit', function() {
+                                                                    var answerData = {};
+                                                                    
+                                                                    // Process each sub-question
+                                                                    subQuestions.forEach(function(subQ) {
+                                                                        var questionId = subQ.getAttribute('data-question-id');
+                                                                        var questionType = subQ.getAttribute('data-question-type');
+                                                                        
+                                                                        if (questionType === 'mcq_single') {
+                                                                            var selected = subQ.querySelector('input[type="radio"]:checked');
+                                                                            if (selected) {
+                                                                                answerData['sub_q_' + questionId] = selected.value;
+                                                                            }
+                                                                        } else if (questionType === 'mcq_multiple') {
+                                                                            var selected = subQ.querySelectorAll('input[type="checkbox"]:checked');
+                                                                            if (selected.length &gt; 0) {
+                                                                                var values = [];
+                                                                                selected.forEach(function(checkbox) {
+                                                                                    values.push(checkbox.value);
+                                                                                });
+                                                                                answerData['sub_q_' + questionId] = values;
+                                                                            }
+                                                                        } else if (questionType === 'text_short' || questionType === 'text_long') {
+                                                                            var textarea = subQ.querySelector('textarea');
+                                                                            if (textarea &amp;&amp; textarea.value.trim()) {
+                                                                                answerData['sub_q_' + questionId] = textarea.value.trim();
+                                                                            }
+                                                                        }
+                                                                    });
+                                                                    
+                                                                    // Set the hidden field value
+                                                                    var hiddenField = document.querySelector('input[name="answer_data"]');
+                                                                    if (hiddenField) {
+                                                                        hiddenField.value = JSON.stringify(answerData);
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
+                                                    </script>
+                                                </div>
+                                            </t>
+                                            
+                                            <!-- Default fallback for other question types -->
+                                            <t t-if="question.type not in ['mcq_single', 'mcq_multiple', 'fill_blank', 'dropdown_blank', 'drag_zone', 'drag_text', 'match', 'sentence_completion', 'step_sequence', 'matrix', 'passage']">
+                                                <div class="alert alert-info">
+                                                    <p>This question type (<t t-esc="question.type"/>) is not yet implemented in the frontend.</p>
+                                                    <textarea name="answer_data" class="form-control" placeholder="Enter your answer here..."></textarea>
+                                                </div>
+                                            </t>
+                                            
+                                            <div class="question-navigation mt-4">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <t t-if="question_index > 0">
+                                                            <a t-attf-href="/quiz/#{quiz.slug}/question/#{question_index}?session=#{session.session_token}" 
+                                                               class="btn btn-secondary">Previous</a>
+                                                        </t>
+                                                    </div>
+                                                    <div class="col-6 text-right">
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <t t-if="question_index + 1 == len(quiz.question_ids)">
+                                                                Complete Quiz
+                                                            </t>
+                                                            <t t-else="">
+                                                                Next Question
+                                                            </t>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <style>
+                                                /* Styles for passage questions */
+                                                .passage-container {
+                                                    margin-bottom: 20px;
+                                                }
+                                                .passage-content {
+                                                    max-height: 500px;
+                                                    overflow-y: auto;
+                                                    padding-right: 10px;
+                                                }
+                                                .sub-question {
+                                                    margin-bottom: 20px;
+                                                }
+                                                .sub-question-counter {
+                                                    font-size: 1.2rem;
+                                                }
+                                                .question-nav .badge {
+                                                    padding: 5px 10px;
+                                                    font-size: 0.9rem;
+                                                }
+                                            </style>
+                                            <!-- Generic submit handler to normalize answer payloads -->
+                                            <script type="text/javascript"><![CDATA[
+                                                document.addEventListener('DOMContentLoaded', function(){
+                                                    var form = document.querySelector('.question-form');
+                                                    if(!form) return;
+                                                    form.addEventListener('submit', function(){
+                                                        // Ensure we have a single answer_data field
+                                                        var ans = form.querySelector('input[name="answer_data"]');
+                                                        if(!ans){
+                                                            ans = document.createElement('input');
+                                                            ans.type = 'hidden';
+                                                            ans.name = 'answer_data';
+                                                            form.appendChild(ans);
+                                                        }
+                                                        // Priority: specialized hidden fields first
+                                                        var dd = form.querySelector('input[name="dropdown_blank_data"]');
+                                                        if(dd && dd.value && dd.value !== '[]'){
+                                                            ans.value = dd.value;
+                                                            return;
+                                                        }
+                                                        var drag = form.querySelector('input[name="drag_drop_data"]');
+                                                        if(drag && drag.value && drag.value !== '[]'){
+                                                            ans.value = drag.value;
+                                                            return;
+                                                        }
+                                                        var seq = form.querySelector('input[name="sequence_data"]');
+                                                        if(seq && seq.value && seq.value !== '[]'){
+                                                            ans.value = seq.value;
+                                                            return;
+                                                        }
+                                                        // Matrix questions typically set answer_data themselves in their block
+                                                        var matrixAns = form.querySelector('.matrix-question input[name="answer_data"]');
+                                                        if(matrixAns && matrixAns.value){
+                                                            ans.value = matrixAns.value;
+                                                            return;
+                                                        }
+                                                        // Fill-in-the-blanks: compile inputs named blank_# into a JSON map
+                                                        var blanks = form.querySelectorAll('input[name^="blank_"]');
+                                                        if(blanks && blanks.length){
+                                                            var data = {};
+                                                            blanks.forEach(function(inp){
+                                                                var m = inp.name.match(/^blank_(\d+)$/);
+                                                                if(m){ data[m[1]] = (inp.value || '').trim(); }
+                                                            });
+                                                            try{ ans.value = JSON.stringify(data); }catch(e){ ans.value = '{}'; }
+                                                            return;
+                                                        }
+                                                        // Default: leave existing answer_data (MCQ blocks already post directly)
+                                                    });
+                                                });
+                                            ]]></script>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Quiz Results Template -->
+    
+    <template id="quiz_question_navigation" name="Quiz Question Navigation">
+        <t t-if="question_index + 1 == len(quiz.question_ids)">
+            Complete Quiz
+        </t>
+        <t t-else="">
+            Next Question
+        </t>
+    </template>
+</odoo>

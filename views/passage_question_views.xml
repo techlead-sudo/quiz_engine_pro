@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_quiz_passage_form" model="ir.ui.view">
+        <field name="name">quiz.passage.form</field>
+        <field name="model">quiz.passage</field>
+        <field name="arch" type="xml">
+            <form string="Reading Passage">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="passage_content" widget="html"/>
+                    </group>
+                    <notebook>
+                        <page string="Sub-Questions">
+                            <field name="sub_question_ids" widget="one2many">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="question_text"/>
+                                    <field name="question_type"/>
+                                    <field name="points"/>
+                                </tree>
+                                <form>
+                                    <sheet>
+                                        <group>
+                                            <field name="question_text" widget="html"/>
+                                            <field name="question_type"/>
+                                            <field name="points"/>
+                                        </group>
+                                        <notebook>
+                                            <page string="Answer" invisible="question_type not in ['text_short', 'text_long']">
+                                                <group>
+                                                    <field name="correct_answer" required="question_type in ['text_short', 'text_long']"/>
+                                                </group>
+                                            </page>
+                                            <page string="Choices" invisible="question_type not in ['mcq_single', 'mcq_multiple']">
+                                                <field name="choice_ids" required="question_type in ['mcq_single', 'mcq_multiple']">
+                                                    <tree editable="bottom">
+                                                        <field name="sequence" widget="handle"/>
+                                                        <field name="text"/>
+                                                        <field name="is_correct"/>
+                                                    </tree>
+                                                    <form>
+                                                        <group>
+                                                            <field name="text"/>
+                                                            <field name="is_correct"/>
+                                                        </group>
+                                                    </form>
+                                                </field>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

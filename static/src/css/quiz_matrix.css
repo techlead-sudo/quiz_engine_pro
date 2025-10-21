@@ -1,0 +1,55 @@
+/* Matrix question styling */
+.matrix-question {
+    margin-bottom: 2rem;
+}
+
+.matrix-question table {
+    background-color: #fff;
+    border-collapse: collapse;
+}
+
+.matrix-question th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.matrix-question .form-check {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.matrix-question .form-check-input {
+    margin: 0;
+    position: relative;
+    transform: scale(1.2);
+}
+
+.matrix-question td {
+    vertical-align: middle;
+    padding: 8px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 767px) {
+    .matrix-question th, .matrix-question td {
+        padding: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .matrix-question .form-check-input {
+        transform: scale(1);
+    }
+}
+
+/* Question specific styling */
+.numerical-question input[type="number"] {
+    max-width: 300px;
+}
+
+.text-box-question input[type="text"] {
+    max-width: 100%;
+}

@@ -1,0 +1,143 @@
+/* Drag and Drop Styling */
+.quiz-drag-drop {
+    margin-bottom: 25px;
+}
+
+.tokens-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 80px; /* Ensure container has height even when empty */
+    padding: 10px;
+}
+
+.tokens-label {
+    width: 100%;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.draggable-token {
+    display: inline-block;
+    padding: 8px 15px;
+    margin: 5px;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    cursor: move !important; 
+    cursor: grab !important;
+    user-select: none;
+    transition: all 0.2s ease;
+    touch-action: none; /* Prevent scrolling on mobile during drag */
+}
+
+.draggable-token:hover {
+    background-color: #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.draggable-token.dragging {
+    opacity: 0.5;
+    cursor: grabbing !important;
+}
+
+.drop-zones-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.drop-zone {
+    min-height: 80px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 2px dashed #ced4da;
+    border-radius: 5px;
+    flex: 1;
+    min-width: 150px;
+    transition: all 0.2s ease;
+}
+
+.drop-zone.drag-over {
+    background-color: #e2f0ff;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.zone-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #6c757d;
+}
+
+/* Special class to make it obvious when a zone can accept drops */
+.drop-zone.can-drop {
+    border-style: dashed;
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.reset-button-container {
+    margin: 15px 0;
+    text-align: right;
+}
+
+.dragging-touch {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Match specific styling */
+.match-pairs .match-column {
+    border: 1px solid #dee2e6;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+}
+
+.match-pairs h5 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.match-pairs .match-arrows {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.match-pairs .match-drop {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.match-pairs .match-target {
+    font-weight: normal;
+    padding: 8px;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+    .drop-zones-container {
+        flex-direction: column;
+    }
+    
+    .drop-zone {
+        margin-bottom: 10px;
+    }
+    
+    .draggable-token {
+        margin-bottom: 8px;
+    }
+    
+    .match-pairs .row {
+        flex-direction: column;
+    }
+    
+    .match-pairs .match-arrows {
+        transform: rotate(90deg);
+        margin: 15px 0;
+    }
+}

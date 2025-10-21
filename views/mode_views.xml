@@ -1,0 +1,68 @@
+<odoo>
+  <record id="view_quiz_mode_tree" model="ir.ui.view">
+    <field name="name">quiz.mode.tree</field>
+    <field name="model">quiz.mode</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="sequence"/>
+        <field name="name"/>
+        <field name="key"/>
+        <field name="supports_rationales"/>
+        <field name="immediate_feedback"/>
+        <field name="explanation_policy"/>
+        <field name="is_adaptive"/>
+        <field name="default_question_limit"/>
+        <field name="active"/>
+      </tree>
+    </field>
+  </record>
+
+  <record id="view_quiz_mode_form" model="ir.ui.view">
+    <field name="name">quiz.mode.form</field>
+    <field name="model">quiz.mode</field>
+    <field name="arch" type="xml">
+      <form string="Quiz Mode">
+        <sheet>
+          <group>
+            <group>
+              <field name="name"/>
+              <field name="key"/>
+              <field name="sequence"/>
+              <field name="active"/>
+              <field name="icon_class"/>
+              <field name="color_class"/>
+            </group>
+            <group>
+              <field name="supports_rationales"/>
+              <field name="immediate_feedback"/>
+              <field name="explanation_policy"/>
+              <field name="feedback_mode"/>
+              <field name="default_question_limit"/>
+              <field name="readiness_default_length"/>
+              <field name="exam_full_length"/>
+              <field name="is_adaptive"/>
+              <field name="time_limit_enforced"/>
+              <field name="time_limit_minutes" modifiers="{'invisible': [('time_limit_enforced','=',False)]}"/>
+            </group>
+          </group>
+          <notebook>
+            <page string="Description">
+              <field name="description" placeholder="Describe how this mode behaves..."/>
+            </page>
+            <page string="Quizzes">
+              <field name="quiz_ids" widget="many2many_tags" options="{'no_create': True}"/>
+            </page>
+          </notebook>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_quiz_modes" model="ir.actions.act_window">
+    <field name="name">Quiz Modes</field>
+    <field name="res_model">quiz.mode</field>
+    <field name="view_mode">tree,form</field>
+  </record>
+
+  <menuitem id="menu_quiz_modes" name="Modes" parent="menu_quiz_configuration" action="action_quiz_modes" sequence="15" groups="quiz_engine_pro.group_quiz_master"/>
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Action for managing Quiz Masters -->
+    <record id="action_quiz_masters" model="ir.actions.act_window">
+        <field name="name">Quiz Masters</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        
+        <field name="context" eval="{'default_groups_id': [(4, ref('quiz_engine_pro.group_quiz_master'))]}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new user to the Quiz Masters group
+            </p>
+            <p>
+                Users in this group have full access to all quizzes, questions, and sessions.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu item for Quiz Masters management -->
+    <menuitem id="menu_quiz_masters" 
+              name="Quiz Masters" 
+              parent="menu_quiz_engine_root" 
+              action="action_quiz_masters" 
+              sequence="40" 
+              groups="base.group_system,quiz_engine_pro.group_quiz_master"/>
+</odoo>

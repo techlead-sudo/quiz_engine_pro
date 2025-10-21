@@ -1,0 +1,74 @@
+/* Fill in the Blanks styling for Quiz Engine Pro */
+
+/* Container for questions with blanks */
+.question-content-with-blanks,
+.question-text-with-blanks {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+/* Style for input fields within text */
+.question-content-with-blanks input,
+.question-text-with-blanks input {
+    display: inline-block;
+    min-width: 120px;
+    max-width: 200px;
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin: 0 4px;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.question-content-with-blanks input:focus,
+.question-text-with-blanks input:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Style for text parts */
+.quiz-text-part {
+    display: inline;
+}
+
+/* Style for the traditional fill-in-the-blanks format */
+.fill-blanks-container .form-group,
+.fill-blanks .form-group {
+    margin-bottom: 1rem;
+}
+
+.fill-blanks-container label,
+.fill-blanks label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .question-content-with-blanks,
+    .question-text-with-blanks {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    
+    .question-content-with-blanks input,
+    .question-text-with-blanks input {
+        min-width: 100px;
+        max-width: 150px;
+    }
+}
+
+/* Animation for input fields */
+@keyframes highlight {
+    0% { border-color: #ced4da; }
+    50% { border-color: #80bdff; }
+    100% { border-color: #ced4da; }
+}
+
+.question-content-with-blanks input:focus,
+.question-text-with-blanks input:focus {
+    animation: highlight 1s ease-in-out;
+}

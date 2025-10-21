@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="quiz_dropdown_blank_element" name="Dropdown in Text Question" inherit_id="quiz_engine_pro.quiz_question">
+    <xpath expr="//form[hasclass('question-form')]/t[@t-if='question.type not in [\"mcq_single\", \"mcq_multiple\", \"fill_blanks\", \"drag_zone\", \"drag_text\", \"match\"]']" position="before">
+            <!-- Dropdown in Text Question Type -->
+            <t t-if="question.type == 'dropdown_blank'">
+                <div class="dropdown-blank-question">
+                    <input type="hidden" name="dropdown_blank_data" value="[]"/>
+                    <div class="question-text-container mb-4" t-att-data-question-id="question.id">
+                        <!-- Process the template to replace placeholders with dropdowns -->
+                        <t t-set="template" t-value="question.text_template"/>
+                        
+                        <t t-foreach="question.blank_ids" t-as="blank">
+                            <t t-set="placeholder" t-value="{{'{{' + str(blank.blank_number) + '}}'}}"/>
+                            <t t-set="dropdown">
+                                <select class="form-select dropdown-blank-select" 
+                                        t-att-name="'dropdown_blank_' + str(blank.blank_number)" 
+                                        t-att-data-blank-id="blank.id">
+                                    <option value="">-- Select --</option>
+                                    <t t-foreach="blank.option_ids" t-as="option">
+                                        <option t-att-value="option.id">
+                                            <t t-esc="option.label"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </t>
+                            <t t-set="template" t-value="template.replace(placeholder, dropdown)"/>
+                        </t>
+                        
+                        <!-- Render the final template with dropdowns -->
+                        <div class="dropdown-text-content">
+                            <t t-raw="template"/>
+                        </div>
+                    </div>
+                </div>
+                
+                <script type="text/javascript">
+                    $(function() {
+                        // Update hidden field when dropdown selection changes
+                        $('.dropdown-blank-select').on('change', function() {
+                            var data = [];
+                            $('.dropdown-blank-select').each(function() {
+                                if ($(this).val()) {
+                                    data.push({
+                                        blank_id: $(this).data('blank-id'),
+                                        option_id: $(this).val()
+                                    });
+                                }
+                            });
+                            $('input[name="dropdown_blank_data"]').val(JSON.stringify(data));
+                        });
+                    });
+                </script>
+            </t>
+        </xpath>
+    </template>
+</odoo>

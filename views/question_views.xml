@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Question Form View -->
+    <record id="view_quiz_question_form" model="ir.ui.view">
+        <field name="name">quiz.question.form</field>
+        <field name="model">quiz.question</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                        <group>
+                            <field name="type" widget="radio"/>
+                            <field name="sequence"/>
+                            <field name="points"/>
+                            <field name="quiz_id" options="{'no_create': True}"/>
+                            <field name="category_id" options="{'no_create_edit': True}"/>
+                            <field name="access_mode" widget="radio"/>
+                            <field name="allowed_group_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   invisible="access_mode != 'internal'"/>
+                        </group>
+                    
+                    <group>
+                        <field name="question_html" widget="html" options="{'style-inline': true}" 
+                               invisible="type == 'dropdown_blank'"/>
+                        <field name="text_template" widget="html" options="{'style-inline': true}"
+                               placeholder="Enter text with {{1}}, {{2}} placeholders for dropdowns"
+                               invisible="type != 'dropdown_blank'"
+                               required="type == 'dropdown_blank'"/>
+                    </group>
+                    
+                    <notebook>
+                            <!-- ...existing code... -->
+                            <!-- Move Matrix Config and Reading Passage tabs to the end and ensure they are only visible for their types -->
+                            <!-- Matrix Config (only for matrix type) -->
+                            <page string="Matrix Config" invisible="type != 'matrix'">
+                                <field name="matrix_row_ids" widget="one2many">
+                                    <tree editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                    </tree>
+                                </field>
+                                <field name="matrix_column_ids" widget="one2many">
+                                    <tree editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                    </tree>
+                                </field>
+                                <field name="matrix_cell_ids" widget="one2many">
+                                    <tree editable="bottom">
+                                        <field name="row_id"/>
+                                        <field name="column_id"/>
+                                        <field name="is_correct"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <!-- Reading Passage (only for passage type) -->
+                                <page string="Reading Passage" invisible="type != 'passage'">
+                                    <div class="alert alert-info" role="alert">
+                                        <p><i class="fa fa-info-circle"></i> For Reading Passage questions:</p>
+                                        <ul>
+                                            <li>First, add a passage with a title and content below</li>
+                                            <li>Then, add sub-questions related to the passage</li>
+                                            <li>Each sub-question has its own question text and answer options</li>
+                                        </ul>
+                                    </div>
+                                    <field name="passage_ids" widget="one2many">
+                                            <tree editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="name"/>
+                                            </tree>
+                                            <form>
+                                                <sheet>
+                                                    <group>
+                                                        <field name="name"/>
+                                                        <field name="passage_content" widget="html"/>
+                                                    </group>
+                                                    <notebook>
+                                                        <page string="Sub-Questions">
+                                                            <field name="sub_question_ids" widget="one2many">
+                                                                <tree editable="bottom">
+                                                                    <field name="sequence" widget="handle"/>
+                                                                    <field name="question_text"/>
+                                                                    <field name="question_type"/>
+                                                                    <field name="points"/>
+                                                                </tree>
+                                                                <form>
+                                                                    <sheet>
+                                                                        <group>
+                                                                            <field name="question_text" widget="html"/>
+                                                                            <field name="question_type"/>
+                                                                            <field name="points"/>
+                                                                        </group>
+                                                                        <notebook>
+                                                                            <page string="Answer" invisible="question_type not in ['text_short', 'text_long']">
+                                                                                <group>
+                                                                                    <field name="correct_answer" required="question_type in ['text_short', 'text_long']"/>
+                                                                                </group>
+                                                                            </page>
+                                                                            <page string="Choices" invisible="question_type not in ['mcq_single', 'mcq_multiple']">
+                                                                                <field name="choice_ids" required="question_type in ['mcq_single', 'mcq_multiple']">
+                                                                                    <tree editable="bottom">
+                                                                                        <field name="sequence" widget="handle"/>
+                                                                                        <field name="text"/>
+                                                                                        <field name="is_correct"/>
+                                                                                    </tree>
+                                                                                    <form>
+                                                                                        <group>
+                                                                                            <field name="text"/>
+                                                                                            <field name="is_correct"/>
+                                                                                        </group>
+                                                                                    </form>
+                                                                                </field>
+                                                                            </page>
+                                                                        </notebook>
+                                                                    </sheet>
+                                                                </form>
+                                                            </field>
+                                                        </page>
+                                                    </notebook>
+                                                </sheet>
+                                            </form>
+                                    </field>
+                                    <separator string="Sub-Questions"/>
+                                    <field name="sub_question_ids" widget="one2many">
+                                        <tree editable="bottom">
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="question_text"/>
+                                            <field name="question_type"/>
+                                            <field name="points"/>
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <group>
+                                                    <field name="question_text" widget="html"/>
+                                                    <field name="question_type"/>
+                                                    <field name="points"/>
+                                                </group>
+                                                <notebook>
+                                                    <page string="Answer" invisible="question_type not in ['text_short', 'text_long']">
+                                                        <group>
+                                                            <field name="correct_answer" required="question_type in ['text_short', 'text_long']"/>
+                                                        </group>
+                                                    </page>
+                                                    <page string="Choices" invisible="question_type not in ['mcq_single', 'mcq_multiple']">
+                                                        <field name="choice_ids" required="question_type in ['mcq_single', 'mcq_multiple']">
+                                                            <tree editable="bottom">
+                                                                <field name="sequence" widget="handle"/>
+                                                                <field name="text"/>
+                                                                <field name="is_correct"/>
+                                                            </tree>
+                                                            <form>
+                                                                <group>
+                                                                    <field name="text"/>
+                                                                    <field name="is_correct"/>
+                                                                </group>
+                                                            </form>
+                                                        </field>
+                                                    </page>
+                                                </notebook>
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </page>
+                        <!-- Choices for Multiple Choice Questions -->
+                        <page string="Choices" invisible="type not in ['mcq_single', 'mcq_multiple']">
+                            <field name="choice_ids" widget="one2many">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="text"/>
+                                    <field name="is_correct"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <!-- Fill in the Blank Answers -->
+                        <page string="Blank Answers" invisible="type != 'fill_blank'">
+                            <field name="fill_blank_answer_ids" widget="one2many">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="blank_number"/>
+                                    <field name="answer_text"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <!-- Match Pairs -->
+                        <page string="Match Pairs" invisible="type != 'match'">
+                            <field name="match_pair_ids" widget="one2many">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="left_text"/>
+                                    <field name="right_text"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <!-- Drag and Drop Tokens -->
+                        <page string="Drag Tokens" invisible="type not in ['drag_text', 'drag_zone']">
+                            <field name="drag_token_ids" widget="one2many">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="text"/>
+                                    <!-- Expose correct position for both drag_text (blanks) and drag_zone (zone #) -->
+                                    <field name="correct_position" invisible="parent.type not in ['drag_text','drag_zone']" string="Correct Position / Zone #"
+                                           help="For Drag into Text: the blank number (0,1,2,...). For Drag into Zones: the target zone number (1,2,3,...)."/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <!-- Dropdown Blanks (NEW) -->
+                        <page string="Dropdown Blanks" invisible="type != 'dropdown_blank'">
+                            <p class="text-muted mb-2">
+                                Define dropdowns for each placeholder in your text template ({{1}}, {{2}}, etc.).
+                                Add options for each dropdown and mark the correct answer.
+                            </p>
+                            <field name="blank_ids" widget="one2many" domain="[('input_type', '=', 'dropdown')]" context="{'default_input_type': 'dropdown'}">
+                                <tree>
+                                    <field name="blank_number"/>
+                                    <field name="input_type" invisible="1"/>
+                                </tree>
+                                <form>
+                                    <sheet>
+                                        <group>
+                                            <field name="blank_number"/>
+                                            <field name="input_type" invisible="1"/>
+                                        </group>
+                                        <notebook>
+                                            <page string="Options">
+                                                <field name="option_ids">
+                                                    <tree editable="bottom">
+                                                        <field name="sequence" widget="handle"/>
+                                                        <field name="label"/>
+                                                        <field name="is_correct"/>
+                                                    </tree>
+                                                </field>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        
+                        <!-- Sequence Items for Drag Order Questions -->
+                        <page string="Sequence Items" invisible="type != 'drag_order'">
+                            <p class="text-muted mb-2">
+                                Add items that users will need to drag into the correct order.
+                                Set the correct position for each item.
+                            </p>
+                            <field name="sequence_item_ids" widget="one2many">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="label"/>
+                                    <field name="correct_position"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <!-- Explanation -->
+                        <page string="Explanation">
+                            <field name="explanation" widget="html"/>
+                        </page>
+                        
+                        <!-- Fix Sequence Steps page in the form view -->
+                        <page string="Sequence Steps" invisible="type != 'step_sequence'">
+                            <p class="text-muted mb-2">
+                                Add items that users will need to drag into the correct order.
+                                Set the correct position (0, 1, 2, etc.) for each step in the sequence.
+                            </p>
+                            <div class="oe_button_box" style="margin-bottom: 8px;">
+                                <button name="auto_set_positions" string="Auto-set Positions" type="object" 
+                                        class="oe_highlight btn btn-secondary" 
+                                        help="Automatically set correct positions from 0 to N based on the current row order"/>
+                            </div>
+                            <field name="sequence_item_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="correct_position" help="The correct position in the sequence (0, 1, 2, etc.)"/>
+                                    <field name="label"/>
+                                    <field name="content"/>
+                                </tree>
+                            </field>
+                            <div class="alert alert-info mt-3" role="alert">
+                                <strong>Note:</strong> The "Sequence" column is just for reordering rows in this view. 
+                                The "Correct Position" determines the actual correct order of steps that users need to arrange.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Question Tree View -->
+    <record id="view_question_tree" model="ir.ui.view">
+        <field name="name">quiz.question.tree</field>
+        <field name="model">quiz.question</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="quiz_id"/>
+                <field name="sequence"/>
+                <field name="type"/>
+                <field name="question_html" widget="html_simple"/>
+                <field name="points"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Matrix Cell Tree View -->
+    <record id="matrix_cell_view_tree" model="ir.ui.view">
+        <field name="name">quiz.matrix.cell.tree</field>
+        <field name="model">quiz.matrix.cell</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="row_id" domain="[('question_id', '=', question_id)]"/>
+                <field name="column_id" domain="[('question_id', '=', question_id)]"/>
+                <field name="is_correct"/>
+                <field name="question_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Define category for Quiz module security groups -->
+    <record id="module_category_quiz" model="ir.module.category">
+        <field name="name">Quiz</field>
+        <field name="description">Manage quizzes, questions, and quiz sessions</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- Define Quiz Master group with full access to the module -->
+    <record id="group_quiz_master" model="res.groups">
+        <field name="name">Quiz Masters</field>
+        <field name="category_id" ref="module_category_quiz"/>
+        <field name="comment">Users in this group can create, edit, and manage all quizzes, questions, and sessions.</field>
+    </record>
+
+    <!-- Add implied access to base user groups -->
+    <record id="base.group_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_quiz_master'))]"/>
+    </record>
+
+    <!-- Define record rules -->
+    <!-- Quiz access rule - Quiz Masters can access all quizzes -->
+    <record id="quiz_access_rule" model="ir.rule">
+        <field name="name">Quiz: Quiz Masters: Full Access</field>
+        <field name="model_id" ref="model_quiz_quiz"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('group_quiz_master'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    
+    <!-- Question access rule - Quiz Masters can access all questions -->
+    <record id="question_access_rule" model="ir.rule">
+        <field name="name">Question: Quiz Masters: Full Access</field>
+        <field name="model_id" ref="model_quiz_question"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('group_quiz_master'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    
+    <!-- Session access rule - Quiz Masters can access all sessions -->
+    <record id="session_access_rule" model="ir.rule">
+        <field name="name">Session: Quiz Masters: Full Access</field>
+        <field name="model_id" ref="model_quiz_session"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('group_quiz_master'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Read-only access rules for portal/students to enable website usage -->
+    <record id="quiz_portal_read_rule" model="ir.rule">
+        <field name="name">Quiz: Portal/Students: Read Published</field>
+        <field name="model_id" ref="model_quiz_quiz"/>
+        <field name="domain_force">['&amp;', ('published', '=', True), ('access_mode', 'in', ['public','portal'])]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal')), (4, ref('quiz_engine_pro.group_quiz_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="question_portal_read_rule" model="ir.rule">
+        <field name="name">Question: Portal/Students: Read</field>
+        <field name="model_id" ref="model_quiz_question"/>
+        <field name="domain_force">['|','|','|',
+            ('access_mode', '=', 'public'),
+            ('access_mode', '=', 'portal'),
+            '&amp;', ('access_mode', '=', 'inherit'), ('category_id.access_mode', '=', 'public'),
+            '&amp;', ('access_mode', '=', 'inherit'), ('category_id.access_mode', '=', 'portal')]
+        </field>
+        <field name="groups" eval="[(4, ref('base.group_portal')), (4, ref('quiz_engine_pro.group_quiz_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="session_portal_read_rule" model="ir.rule">
+        <field name="name">Session: Portal/Students: Own Sessions</field>
+        <field name="model_id" ref="model_quiz_session"/>
+        <field name="domain_force">['|',
+            ('participant_email', 'ilike', user.email or ''),
+            '&amp;', ('participant_email', '=', False), ('participant_name', 'ilike', user.name or '')
+        ]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal')), (4, ref('quiz_engine_pro.group_quiz_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="response_portal_read_rule" model="ir.rule">
+        <field name="name">Response: Portal/Students: Own via Session</field>
+        <field name="model_id" ref="model_quiz_response"/>
+        <field name="domain_force">[('session_id.participant_email', 'ilike', user.email or '')]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal')), (4, ref('quiz_engine_pro.group_quiz_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

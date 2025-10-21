@@ -1,0 +1,120 @@
+<odoo>
+    <template id="quiz_list_template" name="Quiz List / Mode Selector">
+      <t t-call="quiz_engine_pro.miku_base_template">
+        <div class="layout-modes-wrapper" t-if="modes">
+          <!-- Left Sidebar Modes -->
+          <aside class="modes-sidebar left">
+            <div class="modes-header">Modes</div>
+            <ul class="modes-list list-unstyled m-0 p-0">
+              <t t-foreach="modes" t-as="m">
+                <li>
+                  <a t-att-href="'/quiz?mode=' + m.key" t-att-class="'mode-pill ' + (active_mode and active_mode.id == m.id and 'active' or '')">
+                    <span class="icon" t-att-class="m.icon_class or 'fa fa-cube'"/>
+                    <span class="label"><t t-esc="m.name"/></span>
+                  </a>
+                </li>
+              </t>
+            </ul>
+          </aside>
+          <!-- Center Content -->
+          <main class="mode-center-content d-flex flex-column">
+            <t t-if="active_mode">
+              <div class="active-mode-header text-center mb-3">
+                <h2 class="mb-1"><t t-esc="active_mode.name"/> Mode</h2>
+                <p class="text-muted small mb-2" t-esc="active_mode.description or ''"/>
+                <a href="/quiz" class="small text-decoration-none">Change Mode</a>
+              </div>
+              <t t-if="not quizzes">
+                <div class="alert alert-info mb-0">No quizzes assigned to this mode yet.</div>
+              </t>
+              <div class="quiz-cards-grid" t-if="quizzes">
+                <t t-foreach="quizzes" t-as="quiz">
+                  <div class="quiz-card">
+                    <div class="qc-body">
+                      <h5 class="qc-title"><t t-esc="quiz.name"/></h5>
+                      <div class="qc-meta small text-muted mb-2">Q: <t t-esc="quiz.total_questions"/> • Pts: <t t-esc="quiz.total_points"/></div>
+                      <a t-att-href="'/quiz/' + quiz.slug + (active_mode and ('?mode=' + active_mode.key) or '')" class="btn btn-sm btn-outline-primary w-100">Start</a>
+                    </div>
+                  </div>
+                </t>
+              </div>
+            </t>
+            <t t-if="not active_mode">
+              <div class="placeholder text-center my-auto">
+                <h3 class="fw-semibold mb-3">Select a Mode</h3>
+                <p class="text-muted mb-0 small">Pick a mode from the left or right to load its quizzes here.</p>
+              </div>
+            </t>
+          </main>
+          <!-- Right sidebar removed -->
+        </div>
+        <style>
+          /* Tiju's Academy Theme Palette (adjust hex values if needed to perfectly match brand) */
+          :root {
+            --ta-primary: #082567;              /* main brand blue */
+            --ta-primary-alt: #0d3a9c;          /* hover/alt */
+            --ta-accent: #ff8f1c;               /* accent / highlight (CTA) */
+            --ta-accent-alt: #ffab47;           /* accent hover */
+            --ta-bg: #ffffff;                   /* base background */
+            --ta-bg-soft: #f2f7fb;              /* soft panels */
+            --ta-bg-alt: #e9f1f8;               /* subtle alternate */
+            --ta-border: #d1dfe8;               /* light border */
+            --ta-border-strong: #b7ccd8;        /* stronger border */
+            --ta-text: #1d2f38;                 /* primary text */
+            --ta-text-muted: #5d6b73;           /* muted text */
+            --ta-pill-bg: #f1f6fa;              /* mode pill bg */
+            --ta-pill-hover: #e3f1fa;           /* pill hover */
+            --ta-pill-active-bg: var(--ta-primary);
+            --ta-pill-active-border: var(--ta-primary);
+            --ta-focus-ring: rgba(8,37,103,.28);
+            --ta-card-gradient: linear-gradient(135deg,rgba(8,37,103,.07),rgba(8,37,103,0));
+          }
+          .layout-modes-wrapper, .mode-center-content, .modes-sidebar, .quiz-card {color: var(--ta-text);}
+          /* Outer constraint now 2-column (sidebar + content) */
+          .layout-modes-wrapper {display:grid; grid-template-columns:190px minmax(0,1fr); gap:1.25rem; align-items:start; max-width:1200px; margin:0 auto; padding:0 .5rem;}
+          @media (max-width: 1399.98px){ .layout-modes-wrapper {grid-template-columns:185px minmax(0,1fr);} }
+          @media (max-width: 1199.98px){ .layout-modes-wrapper {grid-template-columns:170px 1fr; gap:1rem;} }
+          @media (max-width: 767.98px){ 
+            .layout-modes-wrapper {grid-template-columns:1fr; gap:1rem;}
+            .modes-sidebar.left{order:2; flex-direction:row; flex-wrap:wrap; background:transparent; border:none; padding:0; box-shadow:none;}
+            .modes-sidebar.left .modes-header {width:100%; order:-1; margin:0 0 .25rem;}
+            .mode-center-content{order:1; padding:1.1rem 1.1rem 1.35rem; border-radius:14px;}
+            .mode-pill {padding:.5rem .65rem; font-size:.7rem;}
+          }
+          .modes-sidebar {background:var(--ta-bg); border:1px solid var(--ta-border); border-radius:12px; padding:.65rem .6rem .75rem; position:relative; display:flex; flex-direction:column; min-height:100%;}
+          .modes-header {font-size:.78rem; text-transform:uppercase; letter-spacing:.09em; font-weight:600; color:var(--ta-text-muted); margin:0 0 .55rem; padding:0 .15rem;}
+          .modes-list {flex:1 1 auto; display:flex; flex-direction:column;}
+          /* Ensure no bullets appear even if global styles override bootstrap utilities */
+          .modes-list, .modes-list li {list-style:none!important;}
+          .modes-list {padding-left:0!important; margin-left:0!important;}
+          .modes-list li + li {margin-top:.45rem;}
+          .mode-pill {display:flex; align-items:center; gap:.55rem; background:var(--ta-pill-bg); border:1px solid var(--ta-border); border-radius:10px; padding:.5rem .6rem; font-size:.72rem; font-weight:600; color:var(--ta-text); text-decoration:none; line-height:1.05rem; transition:all .16s ease; position:relative; min-height:36px;}
+          .mode-pill .icon {font-size:.85rem; opacity:.9; width:1.05rem; text-align:center;}
+          .mode-pill .label {flex:1 1 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+          .mode-pill:hover {background:var(--ta-pill-hover); border-color:var(--ta-primary); color:var(--ta-text); box-shadow:0 0 0 2px var(--ta-focus-ring);}
+          .mode-pill.active {background:var(--ta-pill-active-bg); border-color:var(--ta-pill-active-border); color:#fff; box-shadow:0 0 0 2px var(--ta-focus-ring);} 
+          .mode-center-content {min-height:420px; background:var(--ta-bg); border:1px solid var(--ta-border); border-radius:18px; padding:1.25rem 1.35rem 1.4rem; position:relative; display:flex; flex-direction:column; max-width:900px; margin:0 auto;}
+          .active-mode-header h2 {font-size:1.3rem; font-weight:600; letter-spacing:.5px;}
+          .active-mode-header p {max-width:680px; margin:0 auto 0.4rem;}
+          .quiz-cards-grid {display:grid; gap:.85rem; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); margin-top:.15rem;}
+          .quiz-card {background:var(--ta-bg-soft); border:1px solid var(--ta-border); border-radius:14px; padding:.75rem .75rem .85rem; display:flex; flex-direction:column; position:relative; transition:all .18s ease; min-height:135px;}
+          .quiz-card:before {content:""; position:absolute; inset:0; border-radius:inherit; background:var(--ta-card-gradient); opacity:0; transition:opacity .25s ease; z-index:0; pointer-events:none;}
+          .quiz-card .qc-body {position:relative; z-index:1;}
+          .quiz-card:hover {border-color:var(--ta-primary); box-shadow:0 4px 14px -5px rgba(0,0,0,.18),0 0 0 2px var(--ta-focus-ring); transform:translateY(-4px);} 
+          .quiz-card:hover:before {opacity:1;} 
+          .qc-title {font-size:.88rem; font-weight:600; margin:0 0 .35rem; color:var(--ta-text); line-height:1.1rem;}
+          .qc-meta {font-size:.63rem; letter-spacing:.3px; text-transform:uppercase; font-weight:600; color:var(--ta-text-muted);}          
+          .qc-body .btn {margin-top:auto; font-weight:600; letter-spacing:.25px; --bs-btn-border-color: var(--ta-button-bg); --bs-btn-color: var(--ta-button-bg); --bs-btn-hover-bg: var(--ta-button-bg); --bs-btn-hover-border-color: var(--ta-button-bg); --bs-btn-hover-color: var(--ta-button-text);}          
+          .placeholder {padding:2.5rem 1rem;}
+          .placeholder h3 {font-size:1.4rem; font-weight:600; letter-spacing:.5px;}
+          /* Dark scheme adjustments */
+          @media (prefers-color-scheme: dark){
+            .modes-sidebar, .mode-center-content {background:#f4f8fa; border-color:var(--ta-border-strong);}
+            .mode-pill {background:#e8f2f9; border-color:var(--ta-border-strong); color:var(--ta-text);}
+            .mode-pill.active {background:var(--ta-primary); border-color:var(--ta-primary);}
+            .quiz-card {background:#eef4f7;}
+          }
+        </style>
+      </t>
+    </template>
+</odoo>

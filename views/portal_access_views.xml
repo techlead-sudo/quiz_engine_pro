@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Portal Access Tree View -->
+    <record id="view_quiz_portal_access_tree" model="ir.ui.view">
+        <field name="name">quiz.portal.access.tree</field>
+        <field name="model">quiz.portal.access</field>
+        <field name="arch" type="xml">
+            <tree string="Portal User Access" decoration-success="state == 'accessed'" decoration-warning="state == 'invited'" decoration-danger="state == 'revoked'">
+                <field name="quiz_id"/>
+                <field name="user_id"/>
+                <field name="partner_id"/>
+                <field name="email"/>
+                <field name="state"/>
+                <field name="last_access"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Portal Access Form View -->
+    <record id="view_quiz_portal_access_form" model="ir.ui.view">
+        <field name="name">quiz.portal.access.form</field>
+        <field name="model">quiz.portal.access</field>
+        <field name="arch" type="xml">
+            <form string="Portal User Access">
+                <header>
+                    <field name="state" widget="statusbar" 
+                        statusbar_visible="draft,invited,accessed"/>
+                    <button name="action_send_invitation" string="Send Invitation" type="object"
+                        class="oe_highlight" invisible="state in ('accessed', 'revoked')"/>
+                    <button name="action_revoke_access" string="Revoke Access" type="object"
+                        class="btn btn-danger" invisible="state == 'revoked'"/>
+                    <button name="action_reset_access" string="Reset Access" type="object"
+                        invisible="state != 'revoked'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="portal_group_id" invisible="1"/>
+                            <field name="quiz_id" options="{'no_create': True}"/>
+                            <field name="user_id" domain="[('groups_id', '=', portal_group_id)]" options="{'no_create': True}"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="email" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="invitation_id" readonly="1"/>
+                            <field name="invitation_token" readonly="1"/>
+                            <field name="last_access" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Portal Access Search View -->
+    <record id="view_quiz_portal_access_search" model="ir.ui.view">
+        <field name="name">quiz.portal.access.search</field>
+        <field name="model">quiz.portal.access</field>
+        <field name="arch" type="xml">
+            <search string="Search Portal Access">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="partner_id"/>
+                <field name="email"/>
+                <field name="quiz_id"/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Invited" name="filter_invited" domain="[('state', '=', 'invited')]"/>
+                <filter string="Accessed" name="filter_accessed" domain="[('state', '=', 'accessed')]"/>
+                <filter string="Revoked" name="filter_revoked" domain="[('state', '=', 'revoked')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Quiz" name="groupby_quiz" context="{'group_by': 'quiz_id'}"/>
+                    <filter string="User" name="groupby_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Portal Access Wizard Form View -->
+    <record id="view_quiz_portal_access_wizard_form" model="ir.ui.view">
+        <field name="name">quiz.portal.access.wizard.form</field>
+        <field name="model">quiz.portal.access.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Manage Portal Users">
+                <sheet>
+                    <group>
+                        <field name="quiz_id" options="{'no_create': True}" readonly="1"/>
+                        <field name="action" widget="radio"/>
+                        <field name="portal_group_id" invisible="1"/>
+                        <field name="user_ids" domain="[('groups_id', '=', portal_group_id)]" widget="many2many_tags" options="{'no_create': True}"/>
+                    </group>
+                    <footer>
+                        <button name="action_apply" string="Apply" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Portal Access Action Window -->
+    <record id="action_quiz_portal_access" model="ir.actions.act_window">
+        <field name="name">Portal User Access</field>
+        <field name="res_model">quiz.portal.access</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_quiz_portal_access_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No portal access records found
+            </p>
+            <p>
+                Create portal access entries to allow portal users to access specific quizzes.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_quiz_portal_access"
+        name="Portal User Access"
+        parent="menu_quiz_configuration"
+        action="action_quiz_portal_access"
+        sequence="30"/>
+</odoo>

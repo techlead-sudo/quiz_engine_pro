@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Quiz List Action -->
+    <record id="action_quiz_list" model="ir.actions.act_window">
+        <field name="name">Quizzes</field>
+        <field name="res_model">quiz.quiz</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Sessions Action -->
+    <record id="action_quiz_sessions" model="ir.actions.act_window">
+        <field name="name">Quiz Sessions</field>
+        <field name="res_model">quiz.session</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Action for managing questions from quiz form -->
+    <record id="action_quiz_questions" model="ir.actions.act_window">
+        <field name="name">Quiz Questions</field>
+        <field name="res_model">quiz.question</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('quiz_id', '=', active_id)]</field>
+        <field name="context">{'default_quiz_id': active_id}</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Action for Questions menu (standalone) -->
+    <record id="action_questions" model="ir.actions.act_window">
+        <field name="name">Questions</field>
+        <field name="res_model">quiz.question</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Quiz Tree View -->
+    <record id="view_quiz_tree" model="ir.ui.view">
+        <field name="name">quiz.quiz.tree</field>
+        <field name="model">quiz.quiz</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="slug"/>
+                <field name="published"/>
+                <field name="total_questions"/>
+                <field name="total_points"/>
+                <field name="time_limit"/>
+                <button name="action_view_public_url" type="object" string="View Public URL" icon="fa-external-link"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Quiz Form View -->
+    <record id="view_quiz_form" model="ir.ui.view">
+        <field name="name">quiz.quiz.form</field>
+        <field name="model">quiz.quiz</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="%(action_quiz_questions)d" type="action" string="Manage Questions" class="btn-primary"/>
+                    <button name="action_view_public_url" type="object" string="View Public URL" class="btn-secondary"/>
+                    <button name="action_view_modes" type="object" class="oe_stat_button" icon="fa-layer-group">
+                        <field name="mode_count" widget="statinfo" string="Modes"/>
+                    </button>
+                    <field name="published" widget="boolean_toggle"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Quiz Title"/>
+                        </h1>
+                        <div class="text-muted">
+                            Public URL: <span class="text-primary">/quiz/<field name="slug" readonly="1"/></span>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="slug"/>
+                            <field name="time_limit"/>
+                            <field name="max_attempts"/>
+                            <field name="randomize_questions"/>
+                            <field name="question_limit"/>
+                            <field name="mode_ids" widget="many2many_tags" domain="[('active','=',True)]" options="{'no_create': False}" placeholder="Select Modes"/>
+                            <field name="allow_rationales"/>
+                            <field name="show_results"/>
+                        </group>
+                        <group>
+                            <field name="total_questions"/>
+                            <field name="total_points"/>
+                            <field name="passing_score"/>
+                            <field name="readiness_length"/>
+                            <field name="simulated_exam_length"/>
+                            <field name="enable_adaptive"/>
+                            <field name="access_mode" widget="radio"/>
+                            <field name="allowed_category_ids" widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   domain="[('access_mode', '=', access_mode)]"
+                                   invisible="access_mode == 'public'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" widget="html"/>
+                        </page>
+                        <page string="Questions">
+                            <field name="question_ids" widget="one2many_list" mode="tree">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="type"/>
+                                    <field name="question_html" widget="html_simple"/>
+                                    <field name="points"/>
+                                    <field name="category_id"/>
+                                    <field name="access_mode"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Portal Users" invisible="access_mode not in ('portal', 'invitation')">
+                            <div class="oe_button_box" name="button_box">
+                                <button name="action_add_portal_users" type="object" 
+                                        string="Add Portal Users" class="btn btn-primary"/>
+                            </div>
+                            <field name="portal_access_ids" mode="tree">
+                                <tree decoration-success="state == 'accessed'" decoration-warning="state == 'invited'" decoration-danger="state == 'revoked'">
+                                    <field name="user_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="email"/>
+                                    <field name="state"/>
+                                    <field name="last_access"/>
+                                    <button name="action_send_invitation" string="Send" type="object" icon="fa-envelope" 
+                                            title="Send invitation"/>
+                                    <button name="action_revoke_access" string="Revoke" type="object" icon="fa-ban" 
+                                            title="Revoke access"/>
+                                </tree>
+                            </field>
+                            <div class="text-muted mt-3">
+                                <p>Manage portal user access to this quiz. Add portal users and send them invitations directly from here.</p>
+                                <p>States: <span class="badge badge-info">Draft</span> = Access created but not sent, <span class="badge badge-warning">Invited</span> = Invitation sent, <span class="badge badge-success">Accessed</span> = User has accessed the quiz, <span class="badge badge-danger">Revoked</span> = Access has been revoked</p>
+                            </div>
+                        </page>
+                        <page string="Access Control" invisible="access_mode == 'public'">
+                            <group>
+                                <group>
+                                    <field name="invitation_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Sessions">
+                            <field name="session_ids" mode="tree" readonly="1">
+                                <tree>
+                                    <field name="participant_name"/>
+                                    <field name="state"/>
+                                    <field name="total_score"/>
+                                    <field name="percentage"/>
+                                    <field name="passed"/>
+                                    <field name="create_date"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Main Menu Structure -->
+    <menuitem id="menu_quiz_engine_root" 
+              name="Quiz" 
+              web_icon="quiz_engine_pro,static/description/icon.png"
+              sequence="10"
+              groups="base.group_user,quiz_engine_pro.group_quiz_master"/>
+    
+    <menuitem id="menu_quiz_main" 
+              name="Quizzes" 
+              parent="menu_quiz_engine_root" 
+              action="action_quiz_list" 
+              sequence="10"
+              groups="quiz_engine_pro.group_quiz_master"/>
+              
+    <menuitem id="menu_questions" 
+              name="All Questions" 
+              parent="menu_quiz_engine_root" 
+              action="action_questions" 
+              sequence="20"
+              groups="quiz_engine_pro.group_quiz_master"/>
+              
+    <menuitem id="menu_sessions" 
+              name="Quiz Sessions" 
+              parent="menu_quiz_engine_root" 
+              action="action_quiz_sessions" 
+              sequence="30"
+              groups="quiz_engine_pro.group_quiz_master"/>
+              
+    <!-- Configuration Menu -->
+    <menuitem id="menu_quiz_configuration" 
+              name="Configuration" 
+              parent="menu_quiz_engine_root" 
+              sequence="90"
+              groups="quiz_engine_pro.group_quiz_master"/>
+
+</odoo>

@@ -1,0 +1,53 @@
+/* Dropdown in Text Question Type styling */
+
+.dropdown-blank-question {
+    margin-bottom: 20px;
+}
+
+.inline-dropdowns-text {
+    line-height: 2;
+    font-size: 16px;
+}
+
+.dropdown-blank-select {
+    display: inline-block !important;
+    width: auto !important;
+    min-width: 120px !important;
+    margin: 0 5px;
+    padding: 4px 8px !important;
+    border: 2px solid #80bdff !important;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+    vertical-align: middle !important;
+}
+
+.dropdown-blank-select:focus {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Remove duplicate display of question */
+.question-content h4 + .question-text + .dropdown-blank-question h4 {
+    display: none;
+}
+
+/* Improve the styling of the question area */
+.question-content {
+    padding: 15px 0;
+}
+
+.question-text {
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 767px) {
+    .dropdown-blank-select {
+        width: 100% !important;
+        display: block !important;
+        margin: 5px 0 !important;
+    }
+}

@@ -1,0 +1,304 @@
+           
+<odoo>
+  <template id="quiz_play_template" name="Quiz Play">
+    <t t-call="quiz_engine_pro.miku_base_template">
+      <style>
+        .bg-primary {background-color: var(--ta-primary) !important; border-color: var(--ta-primary) !important;}
+        .text-primary {color: var(--ta-primary) !important;}
+        .btn-primary {--bs-btn-bg: var(--ta-button-bg); --bs-btn-border-color: var(--ta-button-bg); --bs-btn-hover-bg: var(--ta-button-hover); --bs-btn-hover-border-color: var(--ta-button-hover);} 
+      </style>
+      <div class="d-flex justify-content-between align-items-center mb-3 quiz-header">
+        <h2 class="mb-0"><t t-esc="quiz.name"/></h2>
+        <span id="quizProgressLabel" class="text-muted small"></span>
+      </div>
+      <t t-set="tutor_flow" t-value="immediate_feedback or (active_mode and active_mode.key and 'tutor' in active_mode.key)"/>
+      <form t-att-action="'/quiz/' + quiz.slug + '/submit'" method="post" t-att-data-immediate="tutor_flow and '1' or '0'">
+        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+        <t t-foreach="questions" t-as="question">
+          <div class="mb-4 quiz-question-page" style="display:none;">
+            <h5 class="d-flex justify-content-between align-items-start">
+              <span><t t-esc="question.name"/></span>
+            </h5>
+            <!-- Step Sequencing (Drag and Drop) -->
+            <t t-if="question.type == 'step_sequence'">
+              <div class="step-sequence-block mb-3" t-att-data-qid="question.id">
+                <input type="hidden" t-att-name="'question_' + str(question.id)" value="[]" class="step-sequence-answer-json"/>
+                <div class="alert alert-info p-2 mb-3"><strong>Arrange the steps in the correct order:</strong> Drag and drop each step into the desired position.</div>
+                <div class="step-sequence-list card shadow-sm">
+                  <div class="card-body py-2 d-flex flex-column gap-2">
+                    <t t-foreach="question.sequence_item_ids.sorted(lambda r: r.sequence)" t-as="step" t-key="step.id">
+                      <div class="step-sequence-item" draggable="true" t-att-data-step-id="step.id">
+                        <span class="step-sequence-text"><t t-esc="step.label"/></span>
+                      </div>
+                    </t>
+                  </div>
+                </div>
+              </div>
+              <script type="text/javascript"><![CDATA[(function(){
+                function init(root){
+                  if(!root||root.dataset.ssReady)return;root.dataset.ssReady='1';
+                  var hidden=root.querySelector('.step-sequence-answer-json');
+                  var items=[...root.querySelectorAll('.step-sequence-item')];
+                  var dragging=null;
+                  items.forEach(function(item){
+                    item.addEventListener('dragstart',function(e){
+                      dragging=item;
+                      e.dataTransfer.effectAllowed='move';
+                    });
+                    item.addEventListener('dragend',function(){dragging=null;});
+                    item.addEventListener('dragover',function(e){e.preventDefault();});
+                    item.addEventListener('drop',function(e){
+                      e.preventDefault();
+                      if(!dragging||dragging===item)return;
+                      var parent=item.parentNode;
+                      parent.insertBefore(dragging,item.nextSibling);
+                      serialize();
+                    });
+                  });
+                  function serialize(){
+                    var data=[];
+                    items=[...root.querySelectorAll('.step-sequence-item')];
+                    items.forEach(function(item,i){
+                      data.push({step_id:parseInt(item.getAttribute('data-step-id'),10),position:i});
+                    });
+                    try{hidden.value=JSON.stringify(data);}catch(e){hidden.value='[]';}
+                  }
+                  serialize();
+                }
+                function all(){document.querySelectorAll('.step-sequence-block').forEach(init);}
+                if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all);else all();
+              })();]]></script>
+              <style>
+                .step-sequence-block .step-sequence-list{background:#f8fafc;border:1px solid #dbe4ee;border-radius:10px;}
+                .step-sequence-block .step-sequence-item{background:#eef5ff;border:1px solid #c5dcff;border-radius:16px;padding:8px 18px;font-size:.95rem;line-height:1.2;margin:6px 0;cursor:move;user-select:none;transition:background .15s,border-color .15s;}
+                .step-sequence-block .step-sequence-item:active{background:#d1f5e5;border-color:#8ad4b4;}
+                .step-sequence-block .step-sequence-text{font-weight:500;}
+              </style>
+            </t>
+            <!-- Passage -->
+            <t t-if="question.type == 'passage'">
+              <div class="passage-question" t-att-id="'passage_q_' + str(question.id)">
+                <input type="hidden" t-att-name="'question_' + str(question.id)" value="{}" class="passage-answer-json"/>
+                <t t-set="_passage" t-value="question.passage_ids and question.passage_ids[0] or False"/>
+                <div class="card mb-3">
+                  <div class="card-header bg-primary text-white"><strong>Reading Passage</strong></div>
+                  <div class="card-body">
+                    <h6 t-if="_passage"><t t-esc="_passage.name"/></h6>
+                    <div t-if="_passage" class="passage-text" t-raw="_passage.passage_content"/>
+                    <div t-if="not _passage" class="alert alert-warning p-2 mb-0">No passage content defined.</div>
+                  </div>
+                </div>
+                <t t-if="_passage and _passage.sub_question_ids">
+                  <div class="sub-questions">
+                    <t t-foreach="_passage.sub_question_ids" t-as="sub_q" t-key="sub_q.id">
+                      <div class="card mb-3 sub-question" t-att-data-sub-id="sub_q.id" t-att-data-sub-type="sub_q.question_type">
+                        <div class="card-body p-3">
+                          <div class="sub-question-text mb-2" t-raw="sub_q.question_text"/>
+                          <t t-if="sub_q.question_type == 'mcq_single'">
+                            <t t-foreach="sub_q.choice_ids" t-as="choice" t-key="choice.id">
+                              <div class="form-check mb-1">
+                                <input class="form-check-input" type="radio" t-att-name="'sub_q_' + str(sub_q.id)" t-att-value="choice.id" t-att-data-correct="choice.is_correct and '1' or '0'"/>
+                                <label class="form-check-label"><t t-esc="choice.text"/></label>
+                              </div>
+                            </t>
+                          </t>
+                          <t t-elif="sub_q.question_type == 'mcq_multiple'">
+                            <t t-foreach="sub_q.choice_ids" t-as="choice" t-key="choice.id">
+                              <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox" t-att-name="'sub_q_' + str(sub_q.id) + '[]'" t-att-value="choice.id" t-att-data-correct="choice.is_correct and '1' or '0'"/>
+                                <label class="form-check-label"><t t-esc="choice.text"/></label>
+                              </div>
+                            </t>
+                          </t>
+                          <t t-elif="sub_q.question_type == 'text_long'">
+                            <textarea class="form-control form-control-sm" rows="4" t-att-name="'sub_q_' + str(sub_q.id)" placeholder="Answer..."></textarea>
+                          </t>
+                        </div>
+                      </div>
+                    </t>
+                  </div>
+                </t>
+                <t t-if="_passage and not _passage.sub_question_ids">
+                  <div class="alert alert-warning">No sub-questions added to this passage.</div>
+                </t>
+                <script type="text/javascript"><![CDATA[(function(){var c=(function(s){while(s&&!(s.classList&&s.classList.contains('passage-question'))){s=s.parentNode;}return s;})(document.currentScript);if(!c)return;var h=c.querySelector('input.passage-answer-json');if(!h)return;var f=c.closest('form');if(f&&!f.__passageHooked){f.__passageHooked=true;f.addEventListener('submit',function(){f.querySelectorAll('.passage-question').forEach(function(b){var store=b.querySelector('input.passage-answer-json');if(!store)return;var answers={};b.querySelectorAll('.sub-question').forEach(function(sq){var sid=sq.getAttribute('data-sub-id');var st=sq.getAttribute('data-sub-type');if(st==='mcq_single'){var r=sq.querySelector('input[type=radio]:checked');if(r)answers['sub_q_'+sid]=r.value;}else if(st==='mcq_multiple'){var checks=sq.querySelectorAll('input[type=checkbox]:checked');if(checks.length){answers['sub_q_'+sid]=Array.from(checks).map(function(c){return c.value;});}}else if(st==='text_long'){var txt=sq.querySelector('textarea');if(txt&&txt.value.trim()){answers['sub_q_'+sid]=txt.value.trim();}}});try{store.value=JSON.stringify(answers);}catch(e){}});}})();]]></script>
+              </div>
+            </t>
+             <!-- Fill in the Blanks -->
+            <t t-if="question.type == 'fill_blank'">
+              <div class="fill-blanks-block mb-3">
+                <div class="mb-2"><t t-raw="question.question_html"/></div>
+                <t t-foreach="question.fill_blank_answer_ids" t-as="blank">
+                  <div class="form-group mb-2">
+                    <label>Blank <t t-esc="blank.blank_number"/>:</label>
+                    <input type="text" class="form-control" t-att-name="'blank_' + str(blank.blank_number)" placeholder="Enter answer"/>
+                  </div>
+                </t>
+              </div>
+            </t>
+            <!-- MCQ Single -->
+            <t t-if="question.type == 'mcq_single'">
+              <t t-foreach="question.choice_ids" t-as="choice">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" t-att-name="'question_' + str(question.id)" t-att-value="choice.id" t-att-data-correct="choice.is_correct and '1' or '0'"/>
+                  <label class="form-check-label"><t t-esc="choice.text"/></label>
+                </div>
+              </t>
+            </t>
+            <!-- MCQ Multiple -->
+            <t t-if="question.type == 'mcq_multiple'">
+              <t t-foreach="question.choice_ids" t-as="choice">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" t-att-name="'question_' + str(question.id)" t-att-value="choice.id" t-att-data-correct="choice.is_correct and '1' or '0'"/>
+                  <label class="form-check-label"><t t-esc="choice.text"/></label>
+                </div>
+              </t>
+            </t>
+            <!-- Drag into Zones -->
+            <t t-if="question.type == 'drag_zone'">
+              <div class="drag-zone-block" t-att-data-qid="question.id">
+                <input type="hidden" t-att-name="'question_' + str(question.id)" value="{}" class="dz-answer-json"/>
+                <div class="dz-instructions alert alert-info p-2 mb-3"><strong>Drag into Zones:</strong> Drag or tap-select a token, then place it into a zone. One token per zone.</div>
+                <div class="row g-3">
+                  <div class="col-12 col-lg-5">
+                    <div class="card h-100 shadow-sm">
+                      <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <strong>Tokens</strong>
+                        <button type="button" class="btn btn-sm btn-outline-secondary dz-reset" title="Reset tokens">Reset</button>
+                      </div>
+                      <div class="card-body py-2 tokens-pool d-flex flex-wrap">
+                        <t t-foreach="question.drag_token_ids" t-as="token" t-key="token.id">
+                          <div class="dz-token" draggable="true" t-att-data-token-id="token.id" t-att-data-token-text="token.text"><span class="dz-token-text"><t t-esc="token.text"/></span></div>
+                        </t>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12 col-lg-7">
+                    <div class="card shadow-sm h-100">
+                      <div class="card-header py-2"><strong>Drop Zones</strong></div>
+                      <div class="card-body py-3">
+                        <div class="dz-zones row g-3">
+                          <t t-set="zone_count" t-value="len(question.drag_token_ids) if question.drag_token_ids else 3"/>
+                          <t t-foreach="range(1, zone_count + 1)" t-as="i" t-key="i">
+                            <div class="col-6 col-md-4">
+                              <div class="dz-zone" t-att-data-zone-id="i">
+                                <div class="dz-zone-label">Zone <t t-esc="i"/></div>
+                                <div class="dz-zone-slot"></div>
+                              </div>
+                            </div>
+                          </t>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <script type="text/javascript"><![CDATA[(function(){function i(r){if(!r||r.dataset.dzReady)return;r.dataset.dzReady='1';var p=r.querySelector('.tokens-pool');var zs=r.querySelectorAll('.dz-zone');var h=r.querySelector('.dz-answer-json');var reset=r.querySelector('.dz-reset');var sel=null;function ser(){var data=[];zs.forEach(function(z){var zid=parseInt(z.getAttribute('data-zone-id'),10);var t=z.querySelector('.dz-zone-slot .dz-token');if(t){data.push({zone:zid,token_id:parseInt(t.getAttribute('data-token-id'),10)});}});try{h.value=JSON.stringify(data);}catch(e){h.value='[]';}}function place(t,z){if(!t||!z)return;var slot=z.querySelector('.dz-zone-slot');if(!slot)return;var ex=slot.querySelector('.dz-token');if(ex){p.appendChild(ex);ex.classList.remove('dz-placed');ex.querySelector('.dz-remove')?.remove();}t.classList.remove('dz-selected');sel=null;t.classList.add('dz-placed');if(!t.querySelector('.dz-remove')){var rm=document.createElement('button');rm.type='button';rm.className='dz-remove';rm.textContent='×';rm.addEventListener('click',function(e){e.stopPropagation();p.appendChild(t);t.classList.remove('dz-placed');rm.remove();ser();});t.appendChild(rm);}slot.innerHTML='';slot.appendChild(t);ser();}function bindTok(t){if(t.dataset.dzBound)return;t.dataset.dzBound='1';t.addEventListener('dragstart',function(e){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.getAttribute('data-token-id'));t.classList.add('dz-dragging');});t.addEventListener('dragend',function(){t.classList.remove('dz-dragging');});t.addEventListener('click',function(){if(t.parentElement!==p)return;if(sel===t){t.classList.remove('dz-selected');sel=null;}else{if(sel)sel.classList.remove('dz-selected');t.classList.add('dz-selected');sel=t;}});t.addEventListener('touchstart',function(){if(t.parentElement!==p)return;if(sel===t){t.classList.remove('dz-selected');sel=null;}else{if(sel)sel.classList.remove('dz-selected');t.classList.add('dz-selected');sel=t;}},{passive:true});}function bindZone(z){if(z.dataset.dzBound)return;z.dataset.dzBound='1';function hov(e){e.preventDefault();z.classList.add('dz-hover');}function off(){z.classList.remove('dz-hover');}function drop(e){e.preventDefault();z.classList.remove('dz-hover');var tid=e.dataTransfer.getData('text/plain');if(!tid)return;var tok=r.querySelector('.dz-token[data-token-id="'+tid+'"]');place(tok,z);}z.addEventListener('dragenter',hov);z.addEventListener('dragover',hov);z.addEventListener('dragleave',off);z.addEventListener('drop',drop);z.addEventListener('click',function(){if(sel)place(sel,z);});var slot=z.querySelector('.dz-zone-slot');if(slot){['dragenter','dragover'].forEach(function(ev){slot.addEventListener(ev,function(e){e.preventDefault();z.classList.add('dz-hover');});});slot.addEventListener('dragleave',function(){z.classList.remove('dz-hover');});slot.addEventListener('drop',function(e){e.preventDefault();z.classList.remove('dz-hover');var tid=e.dataTransfer.getData('text/plain');var tok=r.querySelector('.dz-token[data-token-id="'+tid+'"]');place(tok,z);});}}p.querySelectorAll('.dz-token').forEach(bindTok);zs.forEach(bindZone);if(reset){reset.addEventListener('click',function(){p.querySelectorAll('.dz-token').forEach(function(t){t.classList.remove('dz-placed','dz-selected','dz-dragging');t.querySelector('.dz-remove')?.remove();p.appendChild(t);});zs.forEach(function(z){var slot=z.querySelector('.dz-zone-slot');if(slot){slot.innerHTML='';}z.classList.remove('dz-hover');});sel=null;ser();});}ser();}function all(){document.querySelectorAll('.drag-zone-block').forEach(i);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all);else all();})();]]></script>
+              <style>
+                .drag-zone-block .dz-token{background:#eef5ff;border:1px solid #c5dcff;border-radius:20px;padding:4px 28px 4px 12px;font-size:.85rem;line-height:1.2;position:relative;margin:4px;user-select:none;}
+                .drag-zone-block .dz-token.dz-selected{outline:2px solid #2d6cdf;background:#d9ebff;}
+                .drag-zone-block .dz-token.dz-placed{background:#d1f5e5;border-color:#8ad4b4;}
+                .drag-zone-block .dz-token.dz-dragging{opacity:.6;}
+                .drag-zone-block .dz-token .dz-remove{position:absolute;top:-6px;right:-6px;background:#dc3545;border:none;color:#fff;width:20px;height:20px;line-height:18px;font-size:14px;border-radius:50%;cursor:pointer;padding:0;}
+                .drag-zone-block .dz-zone{border:2px dashed #b9c6d3;border-radius:8px;padding:6px 6px 10px;min-height:90px;position:relative;background:#fafcfe;transition:background .15s,border-color .15s;}
+                .drag-zone-block .dz-zone:hover{border-color:#8aa4ba;}
+                .drag-zone-block .dz-zone.dz-hover{background:#eef8ff;border-color:#2d6cdf;}
+                .drag-zone-block .dz-zone-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#5f6d7a;margin-bottom:4px;}
+                .drag-zone-block .dz-zone-slot{min-height:40px;display:flex;align-items:center;justify-content:center;}
+                .drag-zone-block .dz-reset{font-size:.65rem;}
+                @media (max-width:575.98px){.drag-zone-block .dz-zone{min-height:80px;}}
+              </style>
+            </t>
+            <!-- Match (classic click pairing) -->
+            <t t-if="question.type == 'match'">
+              <div class="match-block classic" t-att-data-qid="question.id">
+                <input type="hidden" t-att-name="'question_' + str(question.id)" value="[]" class="match-answer-json"/>
+                <div class="mb-3 alert alert-info p-2 small"><strong>Match:</strong> Click a left item, then its matching right item. Each right item used once.</div>
+                <div class="match-classic-flex">
+                  <div class="mc-left card shadow-sm">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center"><strong>Left</strong><button type="button" class="btn btn-sm btn-outline-secondary mc-reset">Reset</button></div>
+                    <div class="card-body py-2 mc-left-list">
+                      <t t-foreach="question.match_pair_ids" t-as="pair" t-key="pair.id">
+                        <div class="mc-left-row" t-att-data-left-id="pair.id">
+                          <div class="mc-left-text"><t t-esc="pair.left_text"/></div>
+                          <div class="mc-left-assigned placeholder">Unmatched</div>
+                          <button type="button" class="mc-clear btn btn-xs btn-link text-danger" title="Clear" style="display:none;">Clear</button>
+                        </div>
+                      </t>
+                    </div>
+                  </div>
+                  <div class="mc-divider" aria-hidden="true"></div>
+                  <div class="mc-right card shadow-sm">
+                    <div class="card-header py-2"><strong>Right</strong></div>
+                    <div class="card-body py-2 mc-right-list">
+                      <t t-set="_right_items" t-value="question.match_pair_ids"/>
+                      <t t-foreach="_right_items" t-as="rp" t-key="rp.id">
+                        <div class="mc-right-item" t-att-data-right-id="rp.id"><t t-esc="rp.right_text"/></div>
+                      </t>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <script type="text/javascript"><![CDATA[(function(){function init(root){if(!root||root.dataset.mcReady)return;root.dataset.mcReady='1';var hidden=root.querySelector('.match-answer-json');var leftRows=[...root.querySelectorAll('.mc-left-row')];var rightItems=[...root.querySelectorAll('.mc-right-item')];var reset=root.querySelector('.mc-reset');var currentLeft=null;var mapping={};(function(){var cont=root.querySelector('.mc-right-list');var nodes=rightItems.slice();for(let i=nodes.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[nodes[i],nodes[j]]=[nodes[j],nodes[i]];}nodes.forEach(n=>cont.appendChild(n));})();function serialize(){var data=Object.keys(mapping).map(l=>({left_id:parseInt(l,10),right_id:mapping[l]}));try{hidden.value=JSON.stringify(data);}catch(e){hidden.value='[]';}}function clearRow(row){var lid=row.getAttribute('data-left-id');if(mapping[lid]!==undefined){var rid=mapping[lid];var rEl=root.querySelector('.mc-right-item[data-right-id="'+rid+'"]');if(rEl)rEl.classList.remove('used');delete mapping[lid];}row.classList.remove('matched');var lab=row.querySelector('.mc-left-assigned');lab.textContent='Unmatched';lab.classList.add('placeholder');row.querySelector('.mc-clear').style.display='none';serialize();}function assign(lrow,ritem){var lid=lrow.getAttribute('data-left-id');var rid=parseInt(ritem.getAttribute('data-right-id'),10);if(ritem.classList.contains('used'))return;clearRow(lrow);mapping[lid]=rid;ritem.classList.add('used');var lab=lrow.querySelector('.mc-left-assigned');lab.textContent=ritem.textContent.trim();lab.classList.remove('placeholder');lrow.classList.add('matched');lrow.querySelector('.mc-clear').style.display='inline-block';currentLeft=null;leftRows.forEach(r=>r.classList.remove('active'));serialize();}leftRows.forEach(row=>{row.addEventListener('click',e=>{if(e.target.classList.contains('mc-clear'))return;if(currentLeft===row){currentLeft=null;row.classList.remove('active');}else{leftRows.forEach(r=>r.classList.remove('active'));currentLeft=row;row.classList.add('active');}});row.querySelector('.mc-clear').addEventListener('click',e=>{e.stopPropagation();clearRow(row);});});rightItems.forEach(item=>{item.addEventListener('click',()=>{if(!currentLeft)return;assign(currentLeft,item);});});if(reset){reset.addEventListener('click',()=>{Object.keys(mapping).forEach(k=>delete mapping[k]);rightItems.forEach(r=>r.classList.remove('used'));leftRows.forEach(r=>{clearRow(r);r.classList.remove('active');});currentLeft=null;serialize();});}serialize();}function all(){document.querySelectorAll('.match-block.classic').forEach(init);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all);else all();})();]]></script>
+              <style>
+                .match-block.classic .match-classic-flex{display:flex;gap:1.25rem;align-items:flex-start;}
+                .match-block.classic .mc-left,.match-block.classic .mc-right{flex:1 1 0;}
+                .match-block.classic .mc-divider{width:2px;background:linear-gradient(to bottom,#dbe4ee,#c5d1dc,#dbe4ee);border-radius:2px;min-height:100%;}
+                .match-block.classic .mc-left-row{border:1px solid #d5dee8;border-radius:10px;padding:8px 10px 10px;margin-bottom:10px;background:#fafcfe;cursor:pointer;transition:background .15s,border-color .15s;position:relative;}
+                .match-block.classic .mc-left-row.active{border-color:#2d6cdf;background:#eef6ff;}
+                .match-block.classic .mc-left-row.matched{border-color:#56b88b;background:#e3f9f1;}
+                .match-block.classic .mc-left-text{font-weight:600;font-size:.85rem;margin-bottom:4px;color:#082567;}
+                .match-block.classic .mc-left-assigned{font-size:.72rem;background:#fff;border:1px dashed #c2ccd6;padding:4px 8px;border-radius:14px;display:inline-block;max-width:100%;}
+                .match-block.classic .mc-left-assigned.placeholder{color:#8a98a8;font-style:italic;}
+                .match-block.classic .mc-left-row .mc-clear{position:absolute;top:4px;right:8px;font-size:.65rem;padding:0;}
+                .match-block.classic .mc-right-item{background:#eef5ff;border:1px solid #c5dcff;border-radius:16px;padding:6px 14px;font-size:.75rem;line-height:1.2;margin:4px 0;cursor:pointer;user-select:none;transition:background .15s,border-color .15s;}
+                .match-block.classic .mc-right-item:hover{background:#e2f0ff;}
+                .match-block.classic .mc-right-item.used{background:#d1f5e5;border-color:#8ad4b4;cursor:default;opacity:.85;}
+                .match-block.classic .mc-reset{font-size:.65rem;}
+                @media (max-width:767.98px){.match-block.classic .match-classic-flex{flex-direction:column;}.match-block.classic .mc-divider{width:100%;height:2px;}}
+              </style>
+            </t>
+            <!-- Fallback simple input -->
+            <t t-if="question.type not in ['mcq_single','mcq_multiple','passage','drag_zone','match','fill_blank']">
+              <!-- Fallback input for non-standard question types (excluding step_sequence) -->
+              <t t-if="question.type not in ['mcq_single','mcq_multiple','passage','drag_zone','match','fill_blank','step_sequence']">
+                <input type="text" t-att-name="'question_' + str(question.id)" class="form-control"/>
+              </t>
+            </t>
+            <!-- Immediate Feedback -->
+            <t t-if="tutor_flow and show_rationales">
+              <div class="immediate-feedback mt-3 p-2 border rounded" style="display:none;" t-att-data-qid="question.id">
+                <div class="if-status d-flex align-items-center mb-1"><span class="if-icon me-2"></span><strong class="if-label mb-0 small"></strong></div>
+                <div class="if-expl small" t-raw="question.rationale_html or question.explanation"/>
+              </div>
+            </t>
+            <!-- Rationale (non-immediate) -->
+            <t t-if="(not tutor_flow) and show_rationales">
+              <div class="rationale mt-3 p-2 border rounded bg-light" t-att-data-qid="question.id">
+                <strong class="d-block mb-1">Explanation</strong>
+                <div class="rationale-body small" t-raw="question.rationale_html or question.explanation"/>
+              </div>
+            </t>
+          </div>
+        </t>
+        <!-- Navigation -->
+        <div class="quiz-navigation mt-5 pt-2 text-end" t-if="questions" style="margin-top:2.25rem !important;">
+          <t t-if="tutor_flow"><button type="button" class="btn btn-outline-primary me-2" id="quizCheckBtn">Check</button></t>
+          <button type="button" class="btn btn-secondary me-2" id="quizPrevBtn" disabled="disabled">Previous</button>
+          <button type="button" class="btn btn-primary" id="quizNextBtn">Next</button>
+        </div>
+        <button type="submit" class="btn-miku mt-3" id="quizSubmitBtn" style="display:none;">Submit Quiz</button>
+        <script type="text/javascript"><![CDATA[(function(){var form=document.currentScript&&document.currentScript.closest('form');if(!form)return;var pages=[...form.querySelectorAll('.quiz-question-page')];if(!pages.length)return;var prev=form.querySelector('#quizPrevBtn');var next=form.querySelector('#quizNextBtn');var submit=form.querySelector('#quizSubmitBtn');var progress=document.getElementById('quizProgressLabel');var idx=0;var immediate=form.getAttribute('data-immediate')==='1';var check=form.querySelector('#quizCheckBtn');function evalCurrent(){var page=pages[idx];if(!page)return;var fb=page.querySelector('.immediate-feedback');if(!fb)return;var radios=page.querySelectorAll('input[type=radio]').length>0;var checks=page.querySelectorAll('input[type=checkbox]').length>0;var isPassage=page.querySelector('.passage-question');var correct=false;var attempted=false;if(radios){var sel=page.querySelector('input[type=radio]:checked');if(sel){attempted=true;if(sel.getAttribute('data-correct')==='1')correct=true;}}else if(checks){var sels=[...page.querySelectorAll('input[type=checkbox]:checked')];if(sels.length){attempted=true;var corr=[...page.querySelectorAll('input[type=checkbox][data-correct="1"]')];var sIds=sels.map(cb=>cb.value).sort();var cIds=corr.map(cb=>cb.value).sort();if(sIds.length===cIds.length&&sIds.every((v,i)=>v===cIds[i]))correct=true;}}else if(isPassage){var any=page.querySelector('.passage-question input[type=radio]:checked, .passage-question input[type=checkbox]:checked, .passage-question textarea, .passage-question input[type=text]');if(any)attempted=true;correct=true;}else{var txt=page.querySelector('input[type=text]');if(txt&&txt.value.trim().length){attempted=true;correct=true;}}if(!attempted){fb.style.display='';fb.classList.remove('correct','incorrect');fb.classList.add('incorrect');var ic=fb.querySelector('.if-icon');var lb=fb.querySelector('.if-label');if(ic)ic.textContent='✖';if(lb)lb.textContent='Select an answer first';return;}fb.style.display='';fb.classList.remove('correct','incorrect');fb.classList.add(correct?'correct':'incorrect');var ic2=fb.querySelector('.if-icon');var lb2=fb.querySelector('.if-label');if(ic2)ic2.textContent=correct?'✔':'✖';if(lb2)lb2.textContent=correct?'Correct':'Wrong';if(radios||checks){page.querySelectorAll('input[type=radio], input[type=checkbox]').forEach(i=>i.disabled=true);}page.setAttribute('data-checked','1');if(next&&idx<pages.length-1)next.disabled=false;}function show(i){if(i<0||i>=pages.length)return;pages.forEach(p=>p.style.display='none');pages[i].style.display='';idx=i;if(prev)prev.disabled=(i===0);if(next)next.style.display=(i===pages.length-1)?'none':'';if(submit)submit.style.display=(i===pages.length-1)?'':'none';if(progress)progress.textContent='Question '+(i+1)+' of '+pages.length;if(immediate){var pg=pages[i];var fb=pg.querySelector('.immediate-feedback');if(fb)fb.style.display='none';pg.removeAttribute('data-checked');if(next&&i<pages.length-1)next.disabled=true;}}if(prev)prev.addEventListener('click',()=>show(idx-1));if(next)next.addEventListener('click',()=>show(idx+1));if(check&&immediate)check.addEventListener('click',()=>evalCurrent());document.addEventListener('keydown',ev=>{if(!pages.length)return;if(ev.key==='ArrowRight'&&idx<pages.length-1)show(idx+1);else if(ev.key==='ArrowLeft'&&idx>0)show(idx-1);});try{show(0);if(immediate&&next)next.disabled=true;}catch(e){if(pages.length)pages[0].style.display='';}})();]]></script>
+        <style>
+          .immediate-feedback {background: var(--ta-bg-soft,#f6f9fb); border-color: var(--ta-border,#d8e3ea)!important;}
+          .immediate-feedback.correct {border-color:#2fa27c!important; background:#ecfbf5;}
+          .immediate-feedback.incorrect {border-color:#c62828!important; background:#fdeeee;}
+          .immediate-feedback .if-status {font-size:.8rem;}
+          .immediate-feedback.correct .if-label {color:#1f7a59;}
+          .immediate-feedback.incorrect .if-label {color:#b02121;}
+          .immediate-feedback .if-icon {font-size:.9rem; line-height:1;}
+        </style>
+      </form>
+    </t>
+  </template>
+</odoo>

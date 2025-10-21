@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Matrix Row Form View -->
+    <record id="matrix_row_view_form" model="ir.ui.view">
+        <field name="name">quiz.matrix.row.form</field>
+        <field name="model">quiz.matrix.row</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="sequence"/>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="question_id" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Matrix Row Tree View -->
+    <record id="matrix_row_view_tree" model="ir.ui.view">
+        <field name="name">quiz.matrix.row.tree</field>
+        <field name="model">quiz.matrix.row</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Matrix Column Form View -->
+    <record id="matrix_column_view_form" model="ir.ui.view">
+        <field name="name">quiz.matrix.column.form</field>
+        <field name="model">quiz.matrix.column</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="sequence"/>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="question_id" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Matrix Column Tree View -->
+    <record id="matrix_column_view_tree" model="ir.ui.view">
+        <field name="name">quiz.matrix.column.tree</field>
+        <field name="model">quiz.matrix.column</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Matrix Cell Form View -->
+    <record id="matrix_cell_view_form" model="ir.ui.view">
+        <field name="name">quiz.matrix.cell.form</field>
+        <field name="model">quiz.matrix.cell</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="row_id"/>
+                        <field name="column_id"/>
+                        <field name="is_correct"/>
+                        <field name="question_id" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Matrix Cell Tree View -->
+    <record id="matrix_cell_view_tree" model="ir.ui.view">
+        <field name="name">quiz.matrix.cell.tree</field>
+        <field name="model">quiz.matrix.cell</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="row_id"/>
+                <field name="column_id"/>
+                <field name="is_correct"/>
+                <field name="question_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Include Matrix fields in Question Form -->
+    <record id="view_question_form_with_matrix" model="ir.ui.view">
+        <field name="name">quiz.question.form.matrix</field>
+        <field name="model">quiz.question</field>
+        <field name="inherit_id" ref="quiz_engine_pro.view_quiz_question_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Matrix Configuration" invisible_if="type != 'matrix'">
+                    <div class="row">
+                        <div class="col-6">
+                            <h3>Matrix Rows</h3>
+                            <field name="matrix_row_ids" context="{'default_question_id': active_id}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="question_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </div>
+                        <div class="col-6">
+                            <h3>Matrix Columns</h3>
+                            <field name="matrix_column_ids" context="{'default_question_id': active_id}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="question_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </div>
+                    </div>
+                    <div class="oe_button_box" style="margin: 10px 0;">
+                        <button name="generate_matrix_cells" type="object" 
+                                string="Generate Cell Configuration" class="btn btn-primary"
+                                help="Create cell configuration grid based on rows and columns"/>
+                    </div>
+                    <div class="mt-3">
+                        <h3>Matrix Cell Configuration</h3>
+                        <p class="text-muted">Check the cells that represent the correct answers for your matrix question.</p>
+                        <field name="matrix_cell_ids" context="{'default_question_id': active_id}">
+                            <tree editable="bottom">
+                                <field name="row_id" domain="[('question_id', '=', parent.id)]"/>
+                                <field name="column_id" domain="[('question_id', '=', parent.id)]"/>
+                                <field name="is_correct"/>
+                                <field name="question_id" invisible="1"/>
+                            </tree>
+                        </field>
+                        <div class="alert alert-info mt-3" role="alert">
+                            <p>
+                                <i class="fa fa-info-circle" title="Matrix help"></i>
+                                Configure which cells should be selected as correct answers by checking the corresponding boxes.
+                            </p>
+                        </div>
+                    </div>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Define category for Quiz module security groups -->
+    <record id="module_category_quiz" model="ir.module.category">
+        <field name="name">Quiz</field>
+        <field name="description">Manage quizzes, questions, and quiz sessions</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- Define Quiz Master group with full access to the module -->
+    <record id="group_quiz_master" model="res.groups">
+        <field name="name">Quiz Masters</field>
+        <field name="category_id" ref="quiz_engine_pro.module_category_quiz"/>
+        <field name="comment">Users in this group can create, edit, and manage all quizzes, questions, and sessions.</field>
+    </record>
+    
+    <!-- Define Quiz User group with limited access -->
+    <record id="group_quiz_user" model="res.groups">
+        <field name="name">Quiz Users</field>
+        <field name="category_id" ref="quiz_engine_pro.module_category_quiz"/>
+        <field name="comment">Users in this group can view and take quizzes, but cannot create or edit them.</field>
+    </record>
+    
+    <!-- Define Invited Quiz Users - System group for invited users -->
+    <record id="group_quiz_invited" model="res.groups">
+        <field name="name">Invited Quiz Users</field>
+        <field name="category_id" ref="quiz_engine_pro.module_category_quiz"/>
+        <field name="comment">Group for users who have been invited to specific quizzes.</field>
+    </record>
+
+    <!-- Dedicated Student group: redirected to quiz list after login -->
+    <record id="group_quiz_student" model="res.groups">
+        <field name="name">Quiz Students</field>
+        <field name="category_id" ref="quiz_engine_pro.module_category_quiz"/>
+        <field name="comment">Learners / students. On login they are sent directly to the quiz catalogue.</field>
+        <!-- Inherit portal so they can authenticate without full internal access -->
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+    </record>
+    
+    <!-- Define record rules for access control -->
+    
+    <!-- Public Quiz Access Rule -->
+    <record id="quiz_public_rule" model="ir.rule">
+        <field name="name">Quiz Public Access Rule</field>
+        <field name="model_id" ref="model_quiz_quiz"/>
+        <field name="groups" eval="[(4, ref('base.group_public'))]"/>
+        <field name="domain_force">[('access_mode', '=', 'public')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Portal Quiz Access Rule -->
+    <record id="quiz_portal_rule" model="ir.rule">
+        <field name="name">Quiz Portal Access Rule</field>
+        <field name="model_id" ref="model_quiz_quiz"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="domain_force">['|', ('access_mode', '=', 'public'), ('access_mode', '=', 'portal')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Invited User Quiz Access Rule -->
+    <record id="quiz_invited_user_rule" model="ir.rule">
+        <field name="name">Quiz Invited User Access Rule</field>
+        <field name="model_id" ref="model_quiz_quiz"/>
+        <field name="groups" eval="[(4, ref('quiz_engine_pro.group_quiz_invited'))]"/>
+        <field name="domain_force">['|', '|', ('access_mode', '=', 'public'), ('access_mode', '=', 'portal'), ('access_mode', '=', 'invitation')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Internal User Quiz Access Rule -->
+    <record id="quiz_internal_user_rule" model="ir.rule">
+        <field name="name">Quiz Internal User Access Rule</field>
+        <field name="model_id" ref="model_quiz_quiz"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>  <!-- Can access all quizzes -->
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Question Public Access Rule - can only access public questions -->
+    <record id="question_public_rule" model="ir.rule">
+        <field name="name">Question Public Access Rule</field>
+        <field name="model_id" ref="model_quiz_question"/>
+        <field name="groups" eval="[(4, ref('base.group_public'))]"/>
+        <field name="domain_force">['|', ('access_mode', '=', 'public'), 
+                                        '&amp;', ('access_mode', '=', 'inherit'), 
+                                             ('category_id.access_mode', '=', 'public')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Question Portal Access Rule - can access public and portal questions -->
+    <record id="question_portal_rule" model="ir.rule">
+        <field name="name">Question Portal Access Rule</field>
+        <field name="model_id" ref="model_quiz_question"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="domain_force">['|', '|', '|',
+                                     ('access_mode', '=', 'public'),
+                                     ('access_mode', '=', 'portal'),
+                                     '&amp;', ('access_mode', '=', 'inherit'), ('category_id.access_mode', '=', 'public'),
+                                     '&amp;', ('access_mode', '=', 'inherit'), ('category_id.access_mode', '=', 'portal')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

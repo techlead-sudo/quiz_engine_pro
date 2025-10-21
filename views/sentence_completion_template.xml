@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Template for Sentence Completion question type -->
+    <template id="sentence_completion_template" inherit_id="quiz_engine_pro.quiz_question" name="Sentence Completion Template">
+    <xpath expr="//form[hasclass('question-form')]" position="inside">
+            <!-- Sentence Completion Question Type -->
+            <t t-if="question.type == 'sentence_completion'">
+                <div class="quiz-sentence-completion">
+                    <div class="alert alert-info mb-3">
+                        <strong>Instructions:</strong> Drag the tokens below into the correct positions in the sentence.
+                    </div>
+                    
+                    <input type="hidden" name="sentence_completion_data" value="[]"/>
+                    
+                    <!-- Sentence Container with Blanks -->
+                    <div class="sentence-container mb-4">
+                        <div class="sentence-text" t-raw="question.question_html"/>
+                    </div>
+                    
+                    <!-- Available Tokens -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Available Tokens</h5>
+                        </div>
+                        <div class="card-body tokens-container">
+                            <t t-foreach="question.drag_token_ids" t-as="token">
+                                <div class="sentence-token draggable-token" 
+                                     t-att-data-token-id="token.id" 
+                                     draggable="true">
+                                    <t t-esc="token.text"/>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                    
+                    <!-- Reset Button -->
+                    <div class="mt-3 text-end">
+                        <button type="button" class="btn btn-sm btn-secondary reset-tokens">
+                            <i class="fa fa-refresh"></i> Reset
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Script is loaded via assets bundle from quiz_sentence_completion.js -->
+            </t>
+        </xpath>
+    </template>
+    
+    <!-- Also add the sentence completion to the enhanced question template -->
+    <template id="sentence_completion_enhanced_template" inherit_id="quiz_engine_pro.quiz_question_enhanced" name="Enhanced Sentence Completion Template">
+        <xpath expr="//form[hasclass('quiz-question-form')]" position="inside">
+            <!-- Sentence Completion Question Type -->
+            <t t-if="question.type == 'sentence_completion'">
+                <div class="quiz-sentence-completion">
+                    <div class="quiz-alert quiz-alert-info">
+                        <i class="fa fa-info-circle"></i>
+                        Drag the tokens below into the correct positions in the sentence.
+                    </div>
+                    
+                    <input type="hidden" name="sentence_completion_data" value="[]"/>
+                    
+                    <!-- Sentence Container with Blanks -->
+                    <div class="quiz-sentence-container mb-4">
+                        <div class="sentence-text" t-raw="question.question_html"/>
+                    </div>
+                    
+                    <!-- Available Tokens -->
+                    <div class="quiz-card mb-4">
+                        <div class="quiz-card-header">
+                            <h5 class="mb-0">Available Tokens</h5>
+                        </div>
+                        <div class="quiz-card-body tokens-container">
+                            <t t-foreach="question.drag_token_ids" t-as="token">
+                                <div class="sentence-token draggable-token" 
+                                     t-att-data-token-id="token.id" 
+                                     draggable="true">
+                                    <t t-esc="token.text"/>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                    
+                    <!-- Reset Button -->
+                    <div class="text-end">
+                        <button type="button" class="quiz-btn quiz-btn-secondary quiz-btn-sm reset-tokens">
+                            <i class="fa fa-refresh"></i> Reset
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Script is loaded via assets bundle from quiz_sentence_completion.js -->
+            </t>
+        </xpath>
+    </template>
+</odoo>

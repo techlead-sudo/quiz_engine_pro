@@ -1,0 +1,40 @@
+/* Styling for short text (text_short) answers inside passage questions */
+.passage-question .short-text-wrapper {
+  position: relative;
+}
+.passage-question .short-text-answer {
+  resize: vertical;
+  min-height: 90px;
+  border: 2px solid #4b7bec;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  line-height: 1.3rem;
+  background: #f8fbff;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.passage-question .short-text-answer:focus {
+  outline: none;
+  border-color: #3867d6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(56,103,214,0.15);
+}
+.passage-question .short-text-answer::placeholder {
+  color: #9aa8b6;
+  font-style: italic;
+}
+.passage-question .short-text-wrapper .hint {
+  opacity: 0.85;
+}
+/* Dark mode awareness if body has o_dark */
+.o_dark .passage-question .short-text-answer {
+  background: #2f3640;
+  border-color: #487eb0;
+  color: #f5f6fa;
+}
+.o_dark .passage-question .short-text-answer:focus {
+  background: #353b48;
+  border-color: #74b9ff;
+  box-shadow: 0 0 0 3px rgba(116,185,255,0.2);
+}

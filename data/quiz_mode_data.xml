@@ -1,0 +1,40 @@
+<odoo>
+  <data noupdate="1">
+    <record id="quiz_mode_tutor" model="quiz.mode">
+      <field name="name">Tutor Mode</field>
+      <field name="key">tutor</field>
+      <field name="description">Relaxed practice with immediate feedback and explanations.</field>
+      <field name="supports_rationales">True</field>
+      <field name="is_adaptive">False</field>
+      <field name="icon_class">fa fa-graduation-cap</field>
+      <field name="sequence">1</field>
+    </record>
+    <record id="quiz_mode_readiness" model="quiz.mode">
+      <field name="name">Readiness Assessment</field>
+      <field name="key">readiness</field>
+      <field name="description">Diagnostic sample to gauge strengths and weaknesses.</field>
+      <field name="supports_rationales">True</field>
+      <field name="is_adaptive">False</field>
+      <field name="icon_class">fa fa-chart-line</field>
+      <field name="sequence">2</field>
+    </record>
+    <record id="quiz_mode_exam" model="quiz.mode">
+      <field name="name">Simulated Exam</field>
+      <field name="key">exam</field>
+      <field name="description">Full-length timed exam environment. Feedback after completion.</field>
+      <field name="supports_rationales">False</field>
+      <field name="is_adaptive">False</field>
+      <field name="icon_class">fa fa-stopwatch</field>
+      <field name="sequence">3</field>
+    </record>
+    <record id="quiz_mode_cat" model="quiz.mode">
+      <field name="name">Adaptive (CAT)</field>
+      <field name="key">cat</field>
+      <field name="description">Computer adaptive testing adjusts difficulty as you answer.</field>
+      <field name="supports_rationales">False</field>
+      <field name="is_adaptive">True</field>
+      <field name="icon_class">fa fa-wave-square</field>
+      <field name="sequence">4</field>
+    </record>
+  </data>
+</odoo>

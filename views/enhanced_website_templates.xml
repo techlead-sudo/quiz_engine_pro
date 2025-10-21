@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Enhanced Quiz List Template -->
+    <template id="quiz_list_enhanced" name="Enhanced Quiz List">
+        <t t-call="website.layout">
+            <div id="wrap" class="quiz-container">
+                <div class="container-fluid">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-10 col-xl-8">
+                            <!-- Header Section -->
+                            <div class="quiz-header text-center">
+                                <h1 class="display-4 mb-3">
+                                    <i class="fa fa-graduation-cap me-3" title="Quizzes"></i>
+                                    Available Quizzes
+                                </h1>
+                                <p class="lead mb-0">Test your knowledge with our interactive quizzes</p>
+                            </div>
+                            
+                            <!-- Quiz Grid -->
+                            <t t-if="not quizzes">
+                                <div class="quiz-alert quiz-alert-info text-center">
+                                    <i class="fa fa-info-circle fa-2x mb-3" title="Info"></i>
+                                    <h4>No quizzes available at the moment</h4>
+                                    <p class="mb-0">Please check back later for new quizzes.</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="row g-4">
+                                    <t t-foreach="quizzes" t-as="quiz">
+                                        <div class="col-md-6 col-xl-4">
+                                            <div class="quiz-question-card h-100 d-flex flex-column">
+                                                <!-- Quiz Header -->
+                                                <div class="quiz-card-header mb-3">
+                                                    <h5 class="quiz-question-title mb-2" t-field="quiz.name"/>
+                                                    <div class="quiz-card-meta d-flex align-items-center gap-3">
+                                                        <span class="badge bg-primary">
+                                                            <i class="fa fa-question-circle" title="Questions"></i>
+                                                            <t t-esc="quiz.total_questions"/> questions
+                                                        </span>
+                                                        <t t-if="quiz.time_limit">
+                                                            <span class="badge bg-warning">
+                                                                <i class="fa fa-clock-o" title="Time limit"></i>
+                                                                <t t-esc="quiz.time_limit"/> min
+                                                            </span>
+                                                        </t>
+                                                        <span class="badge bg-info">
+                                                            <i class="fa fa-trophy" title="Points"></i>
+                                                            <t t-esc="quiz.total_points"/> pts
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Quiz Description -->
+                                                <div class="quiz-card-content flex-grow-1 mb-3">
+                                                    <div class="quiz-description" t-field="quiz.description"/>
+                                                </div>
+                                                
+                                                <!-- Quiz Footer -->
+                                                <div class="quiz-card-footer mt-auto">
+                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                        <small class="text-muted">
+                                                            Passing Score: <strong><t t-esc="quiz.passing_score"/>%</strong>
+                                                        </small>
+                                                        <small class="text-muted">
+                                                            <i class="fa fa-users" title="Attempts"></i> 
+                                                            <t t-esc="len(quiz.session_ids)"/> attempts
+                                                        </small>
+                                                    </div>
+                                                    <a t-attf-href="/quiz/#{quiz.slug}" 
+                                                       class="quiz-btn quiz-btn-primary quiz-btn-lg w-100">
+                                                        <i class="fa fa-play-circle" title="Start"></i>
+                                                        Start Quiz
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Enhanced Quiz Detail Template -->
+    <template id="quiz_detail_enhanced" name="Enhanced Quiz Detail">
+        <t t-call="website.layout">
+            <div id="wrap" class="quiz-container">
+                <div class="container-fluid">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-8 col-xl-6">
+                            <!-- Quiz Header -->
+                            <div class="quiz-header text-center">
+                                <h1 class="display-5 mb-3" t-field="quiz.name"/>
+                                <div class="quiz-description mb-4" t-field="quiz.description"/>
+                                
+                                <!-- Quiz Statistics -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6 col-md-3">
+                                        <div class="quiz-stat">
+                                            <i class="fa fa-question-circle fa-2x text-primary mb-2" title="Questions"></i>
+                                            <div class="h4 mb-0"><t t-esc="quiz.total_questions"/></div>
+                                            <small class="text-muted">Questions</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="quiz-stat">
+                                            <i class="fa fa-trophy fa-2x text-warning mb-2" title="Points"></i>
+                                            <div class="h4 mb-0"><t t-esc="quiz.total_points"/></div>
+                                            <small class="text-muted">Points</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="quiz-stat">
+                                            <i t-att-class="'fa fa-clock-o fa-2x mb-2 ' + ('text-danger' if quiz.time_limit else 'text-success')" t-att-title="'Time limit'"></i>
+                                            <div class="h4 mb-0">
+                                                <t t-if="quiz.time_limit">
+                                                    <t t-esc="quiz.time_limit"/> min
+                                                </t>
+                                                <t t-else="">
+                                                    No limit
+                                                </t>
+                                            </div>
+                                            <small class="text-muted">Time Limit</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="quiz-stat">
+                                            <i class="fa fa-check-circle fa-2x text-success mb-2" title="Pass score"></i>
+                                            <div class="h4 mb-0"><t t-esc="quiz.passing_score"/>%</div>
+                                            <small class="text-muted">Pass Score</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Start Quiz Form -->
+                            <div class="quiz-question-card">
+                                <h3 class="quiz-question-title text-center mb-4">
+                                    <i class="fa fa-user-circle" title="Participant"></i>
+                                    Enter Your Details
+                                </h3>
+                                
+                                <form t-attf-action="/quiz/#{quiz.slug}/start" method="post" class="quiz-start-form">
+                                    <div class="quiz-form-group">
+                                        <label for="participant_name" class="quiz-form-label">
+                                            <i class="fa fa-user" title="Name"></i>
+                                            Your Name *
+                                        </label>
+                                        <input type="text" 
+                                               id="participant_name"
+                                               name="participant_name" 
+                                               class="quiz-form-input" 
+                                               required="required"
+                                               placeholder="Enter your full name"/>
+                                    </div>
+                                    
+                                    <div class="quiz-form-group">
+                                        <label for="participant_email" class="quiz-form-label">
+                                            <i class="fa fa-envelope" title="Email"></i>
+                                            Email Address (Optional)
+                                        </label>
+                                        <input type="email" 
+                                               id="participant_email"
+                                               name="participant_email" 
+                                               class="quiz-form-input"
+                                               placeholder="Enter your email address"/>
+                                    </div>
+                                    
+                                    <!-- Quiz Rules -->
+                                    <div class="quiz-alert quiz-alert-info">
+                                        <i class="fa fa-info-circle" title="Info"></i>
+                                        <div>
+                                            <strong>Quiz Rules:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li>Read each question carefully before answering</li>
+                                                <li t-if="quiz.time_limit">You have <strong><t t-esc="quiz.time_limit"/> minutes</strong> to complete the quiz</li>
+                                                <li>You can navigate between questions using the Next/Previous buttons</li>
+                                                <li>Make sure to submit your final answer for each question</li>
+                                                <li>Your score will be calculated automatically upon completion</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="quiz-btn quiz-btn-primary quiz-btn-lg w-100">
+                                        <i class="fa fa-play-circle" title="Start quiz"></i>
+                                        Start Quiz Now
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Enhanced Quiz Question Template -->
+    <template id="quiz_question_enhanced" name="Enhanced Quiz Question">
+        <t t-call="website.layout">
+            <div id="wrap" class="quiz-container">
+                <div class="container-fluid">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-10 col-xl-8">
+                            <!-- Quiz Header with Progress -->
+                            <div class="quiz-header">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h2 class="mb-2" t-field="quiz.name"/>
+                                        <div class="quiz-meta">
+                                            <i class="fa fa-user" title="Participant"></i>
+                                            <t t-esc="session.participant_name"/>
+                                            <span class="mx-2">•</span>
+                                            <i class="fa fa-clock-o" title="Started"></i>
+                                            Started: <t t-esc="session.start_time"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <div class="quiz-progress-text">
+                                            Question <t t-esc="question_index + 1"/> of <t t-esc="len(quiz.question_ids)"/>
+                                        </div>
+                                        <div class="quiz-progress">
+                                            <div class="quiz-progress-bar" 
+                                                 t-attf-style="width: #{(question_index + 1) / len(quiz.question_ids) * 100}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Question Content -->
+                            <div class="quiz-question-card">
+                                <div class="quiz-question-number">
+                                    Question <t t-esc="question_index + 1"/>
+                                </div>
+                                
+                                <div class="quiz-question-title" t-field="question.question_html"/>
+                                
+                                <div class="quiz-question-points">
+                                    <i class="fa fa-star" title="Points"></i>
+                                    Points: <t t-esc="question.points"/>
+                                </div>
+                                
+                                <form method="post" class="quiz-question-form">
+                                    <input type="hidden" name="session" t-att-value="session.session_token"/>
+                                    
+                                    <!-- Multiple Choice Single -->
+                                    <t t-if="question.type == 'mcq_single'">
+                                        <div class="quiz-choice-container">
+                                            <t t-foreach="question.choice_ids" t-as="choice">
+                                                <div class="quiz-choice">
+                                                    <input type="radio" 
+                                                           name="answer_data" 
+                                                           t-att-value="choice.id" 
+                                                           t-att-id="'choice_' + (choice.id or '')"/>
+                                                    <label t-att-for="'choice_' + (choice.id or '')">
+                                                        <t t-esc="choice.text"/>
+                                                    </label>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </t>
+                                    
+                                    <!-- Multiple Choice Multiple -->
+                                    <t t-if="question.type == 'mcq_multiple'">
+                                        <div class="quiz-alert quiz-alert-info">
+                                            <i class="fa fa-info-circle" title="Info"></i>
+                                            Select all correct answers
+                                        </div>
+                                        <div class="quiz-choice-container">
+                                            <t t-foreach="question.choice_ids" t-as="choice">
+                                                <div class="quiz-choice">
+                                                    <input type="checkbox" 
+                                                           name="answer_data" 
+                                                           t-att-value="choice.id" 
+                                                           t-att-id="'choice_' + (choice.id or '')"/>
+                                                    <label t-att-for="'choice_' + (choice.id or '')">
+                                                        <t t-esc="choice.text"/>
+                                                    </label>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </t>
+                                    
+                                    <!-- Fill in the Blanks -->
+                                    <t t-if="question.type == 'fill_blank'">
+                                        <div class="quiz-alert quiz-alert-info">
+                                            <i class="fa fa-pencil" title="Write answer"></i>
+                                            Fill in the missing words in the text
+                                        </div>
+                                        <div class="fill-blanks-container">
+                                            <!-- Parse the question HTML and replace {blank} with input fields -->
+                                            <div class="question-text-with-blanks mb-4">
+                                                <t t-set="blank_count" t-value="0"/>
+                                                <t t-set="html_content" t-value="question.question_html"/>
+                                                <t t-if="html_content">
+                                                    <t t-set="parts" t-value="html_content.split('{blank}')"/>
+                                                    <t t-foreach="parts" t-as="part">
+                                                        <span class="quiz-text-part"><t t-esc="part"/></span>
+                                                        <t t-if="not part_last">
+                                                            <t t-set="blank_count" t-value="blank_count + 1"/>
+                                                            <input type="text" 
+                                                                   class="quiz-form-input d-inline-block mx-2" 
+                                                                   style="width: auto; min-width: 120px; max-width: 200px;"
+                                                                   t-att-name="'blank_' + str(blank_count)" 
+                                                                   placeholder="Enter answer"/>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                                <t t-else="">
+                                                    <!-- Fallback to original format if no HTML content -->
+                                                    <t t-foreach="question.fill_blank_answer_ids" t-as="blank">
+                                                        <div class="quiz-form-group">
+                                                            <label class="quiz-form-label">
+                                                                Blank <t t-esc="blank.blank_number"/>:
+                                                            </label>
+                                                            <input type="text" 
+                                                                   class="quiz-form-input" 
+                                                                   t-att-name="'blank_' + str(blank.blank_number)" 
+                                                                   placeholder="Enter your answer"/>
+                                                        </div>
+                                                    </t>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    
+                                    <!-- Drag and Drop -->
+                                    <t t-if="question.type in ['drag_zone', 'drag_text']">
+                                        <div class="quiz-alert quiz-alert-info">
+                                            <i class="fa fa-hand-pointer-o" title="Drag and drop"></i>
+                                            Drag the tokens below into the correct positions
+                                        </div>
+                                        
+                                        <div class="quiz-drag-container">
+                                            <input type="hidden" name="drag_drop_data" value="[]"/>
+                                            
+                                            <!-- Available Tokens -->
+                                            <div class="mb-4">
+                                                <h5 class="mb-3">Available Tokens:</h5>
+                                                <div class="quiz-drag-tokens">
+                                                    <t t-foreach="question.drag_token_ids" t-as="token">
+                                                        <div class="quiz-drag-token" 
+                                                             t-att-data-token-id="token.id" 
+                                                             draggable="true">
+                                                            <t t-esc="token.text"/>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Drop Zones -->
+                                            <div class="mb-4">
+                                                <h5 class="mb-3">Drop Zones:</h5>
+                                                <div class="row g-3">
+                                                    <t t-set="zone_count" t-value="len(question.drag_token_ids) if question.drag_token_ids else 3"/>
+                                                    <t t-foreach="range(1, zone_count + 1)" t-as="i">
+                                                        <div class="col-md-6 col-lg-4">
+                                                            <div class="quiz-drop-zone" t-att-data-zone-id="i">
+                                                                <i class="fa fa-crosshairs" title="Drop zone"></i>
+                                                                Drop Zone <t t-esc="i"/>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Reset Button -->
+                                            <div class="text-center">
+                                                <button type="button" class="quiz-btn quiz-btn-secondary quiz-btn-sm reset-tokens">
+                                                    <i class="fa fa-refresh" title="Reset tokens"></i>
+                                                    Reset All Tokens
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    
+                                    <!-- Dropdown in Text -->
+                                    <t t-if="question.type == 'dropdown_blank'">
+                                        <div class="quiz-alert quiz-alert-info">
+                                            <i class="fa fa-caret-down" title="Dropdown"></i>
+                                            Select the correct option from each dropdown
+                                        </div>
+                                        
+                                        <div class="dropdown-text-container">
+                                            <input type="hidden" name="dropdown_blank_data" value="[]"/>
+                                            
+                                            <!-- Enhanced text parsing with inline dropdowns -->
+                                            <div class="quiz-text-with-dropdowns">
+                                                <t t-set="template_text" t-value="question.text_template or ''"/>
+                                                <t t-set="template_text" t-value="template_text.replace('&lt;p&gt;', '').replace('&lt;/p&gt;', '')"/>
+                                                
+                                                <t t-set="parts" t-value="template_text.split('{{')"/>
+                                                <span class="quiz-text-part"><t t-esc="parts[0]"/></span>
+                                                
+                                                <t t-foreach="parts[1:]" t-as="part">
+                                                    <t t-set="blank_parts" t-value="part.split('}}', 1)"/>
+                                                    <t t-if="len(blank_parts) == 2">
+                                                        <t t-set="blank_number" t-value="int(blank_parts[0])"/>
+                                                        <t t-set="remaining_text" t-value="blank_parts[1]"/>
+                                                        
+                                                        <t t-set="found_blank" t-value="False"/>
+                                                        <t t-foreach="question.blank_ids" t-as="blank">
+                                                            <t t-if="blank.blank_number == blank_number">
+                                                                <t t-set="found_blank" t-value="blank"/>
+                                                            </t>
+                                                        </t>
+                                                        
+                                                        <t t-if="found_blank">
+                                                            <select class="quiz-form-input d-inline-block dropdown-blank-select" 
+                                                                   style="width: auto; min-width: 150px; margin: 0 8px;"
+                                                                   t-att-name="'dropdown_blank_' + str(blank_number)" 
+                                                                   t-att-data-blank-id="found_blank.id">
+                                                                <option value="">Choose...</option>
+                                                                <t t-foreach="found_blank.option_ids" t-as="option">
+                                                                    <option t-att-value="option.id">
+                                                                        <t t-esc="option.label"/>
+                                                                    </option>
+                                                                </t>
+                                                            </select>
+                                                        </t>
+                                                        
+                                                        <span class="quiz-text-part"><t t-esc="remaining_text"/></span>
+                                                    </t>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    
+                                    <!-- Navigation -->
+                                    <div class="quiz-navigation">
+                                        <div>
+                                            <t t-if="question_index > 0">
+                                                <a t-attf-href="/quiz/#{quiz.slug}/question/#{question_index}?session=#{session.session_token}" 
+                                                   class="quiz-btn quiz-btn-secondary">
+                                                    <i class="fa fa-arrow-left" title="Previous question"></i>
+                                                    Previous
+                                                </a>
+                                            </t>
+                                        </div>
+                                        <div>
+                                            <button type="submit" class="quiz-btn quiz-btn-primary">
+                                                <t t-if="question_index + 1 == len(quiz.question_ids)">
+                                                    <i class="fa fa-check-circle" title="Complete quiz"></i>
+                                                    Complete Quiz
+                                                </t>
+                                                <t t-else="">
+                                                    <i class="fa fa-arrow-right" title="Next question"></i>
+                                                    Next Question
+                                                </t>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Enhanced Quiz Results Template -->
+    <template id="quiz_results_enhanced" name="Enhanced Quiz Results">
+        <t t-call="website.layout">
+            <div id="wrap" class="quiz-container">
+                <div class="container-fluid">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-8 col-xl-6">
+                            <!-- Header -->
+                            <div class="quiz-header text-center">
+                                <h1 class="display-4 mb-3">
+                                    <i class="fa fa-trophy" title="Prize"></i>
+                                    Quiz Complete!
+                                </h1>
+                                <h2 class="mb-0" t-field="session.quiz_id.name"/>
+                            </div>
+                            
+                            <!-- Results Card -->
+                            <div class="quiz-results-container">
+                                <div class="quiz-score-display">
+                                    <div class="quiz-score-number">
+                                        <t t-esc="session.total_score or 0"/>
+                                    </div>
+                                    <div class="text-muted h5">
+                                        out of <t t-esc="max_score or 0"/> points
+                                    </div>
+                                    <div class="quiz-score-percentage">
+                                        <t t-esc="'%.1f' % (session.percentage or 0)"/>%
+                                    </div>
+                                    <div t-att-class="'quiz-score-status ' + ('passed' if session.passed else 'failed')">
+                                        <t t-if="session.passed">
+                                            <i class="fa fa-check-circle" title="Passed"></i>
+                                            Congratulations! You Passed!
+                                        </t>
+                                        <t t-else="">
+                                            <i class="fa fa-times-circle" title="Failed"></i>
+                                            Better luck next time!
+                                        </t>
+                                    </div>
+                                </div>
+                                
+                                <!-- Additional Info -->
+                                <div class="quiz-question-card">
+                                    <div class="row text-center">
+                                        <div class="col-md-4">
+                                            <div class="quiz-stat">
+                                                <i class="fa fa-user fa-2x text-primary mb-2" title="Participant"></i>
+                                                <div class="h6 mb-0">Participant</div>
+                                                <div class="text-muted">
+                                                    <t t-esc="session.participant_name"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="quiz-stat">
+                                                <i class="fa fa-clock-o fa-2x text-info mb-2" title="Completed at"></i>
+                                                <div class="h6 mb-0">Completed</div>
+                                                <div class="text-muted">
+                                                    <t t-esc="session.end_time"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="quiz-stat">
+                                                <i class="fa fa-target fa-2x text-warning mb-2" title="Required score"></i>
+                                                <div class="h6 mb-0">Required</div>
+                                                <div class="text-muted">
+                                                    <t t-esc="session.quiz_id.passing_score"/>% to pass
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-3 justify-content-center">
+                                    <a href="/quiz" class="quiz-btn quiz-btn-primary quiz-btn-lg">
+                                        <i class="fa fa-list" title="More quizzes"></i>
+                                        More Quizzes
+                                    </a>
+                                    <a t-attf-href="/quiz/#{session.quiz_id.slug}" class="quiz-btn quiz-btn-outline quiz-btn-lg">
+                                        <i class="fa fa-refresh" title="Retake quiz"></i>
+                                        Take Again
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Loading Template -->
+    <template id="quiz_loading" name="Quiz Loading">
+        <div class="quiz-loading">
+            <div class="quiz-spinner"></div>
+            <span>Loading quiz...</span>
+        </div>
+    </template>
+
+    <!-- Error Template -->
+    <template id="quiz_error" name="Quiz Error">
+        <div class="quiz-alert quiz-alert-danger">
+            <i class="fa fa-exclamation-triangle"></i>
+            <div>
+                <strong>Error:</strong>
+                <span t-esc="error_message"/>
+            </div>
+        </div>
+    </template>
+
+</odoo>

@@ -1,0 +1,18 @@
+<odoo>
+  <template id="quiz_results_custom" name="Quiz Results Custom">
+      <t t-call="quiz_engine_pro.miku_base_template">
+          <div class="miku-container" style="margin-top:0; text-align:center;">
+            <h1 style="color:#39c5bb; margin-bottom:18px;">Congratulations!</h1>
+            <h2 style="margin-bottom:12px;">You completed: <span style="color:#1e9bb8;"><t t-esc="quiz.name"/></span></h2>
+            <p style="font-size:20px; color:#2e3a4d; margin-bottom:24px;">Thank you for participating!</p>
+            <div style="font-size:24px; margin-bottom:12px;">
+              <strong>Your Score:</strong> <span style="color:#39c5bb;"><t t-esc="score"/></span> / <t t-esc="max_score"/>
+            </div>
+            <div style="font-size:22px; margin-bottom:24px;">
+              <strong>Percentage:</strong> <span style="color:#1e9bb8;"><t t-esc="(score / max_score * 100) if max_score else 0"/>%</span>
+            </div>
+            <a href="/quiz" class="btn-miku">Back to Quiz List</a>
+          </div>
+      </t>
+    </template>
+</odoo>

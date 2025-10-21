@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Enhanced Quiz Form View -->
+    <record id="view_quiz_form_enhanced" model="ir.ui.view">
+        <field name="name">quiz.quiz.form.enhanced</field>
+        <field name="model">quiz.quiz</field>
+        <field name="arch" type="xml">
+            <form string="Quiz">
+                <header>
+                    <button name="action_view_public_url" type="object" 
+                            string="View Public URL" class="btn-primary" 
+                            icon="fa-external-link"/>
+                    <field name="published" widget="boolean_toggle"/>
+                </header>
+                
+                <div class="alert alert-info" role="alert" invisible="published">
+                    <i class="fa fa-info-circle" title="Draft info"> </i>
+                    <strong>Draft Mode:</strong> This quiz is not published yet. Publish it to make it available to participants.
+                </div>
+                
+                <div class="alert alert-success" role="alert" invisible="not published">
+                    <i class="fa fa-check-circle" title="Published"> </i>
+                    <strong>Published:</strong> This quiz is live and available to participants.
+                </div>
+                
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Quiz Title" required="1"/>
+                        </h1>
+                        <div class="o_row">
+                            <div class="text-muted">
+                                Public URL: <span class="text-primary">/quiz/<field name="slug" readonly="1"/></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <notebook>
+                        <page string="Quiz Settings" name="settings">
+                            <group>
+                                <group string="Basic Settings">
+                                    <field name="slug" help="Used in the public URL"/>
+                                    <field name="published" widget="boolean_toggle"/>
+                                    <field name="randomize_questions" 
+                                           help="Randomize question order for each participant"/>
+                                    <field name="show_results" 
+                                           help="Show detailed results to participants after completion"/>
+                                </group>
+                                <group string="Scoring &amp; Timing">
+                                    <field name="passing_score" 
+                                           help="Minimum percentage required to pass"/>
+                                    <field name="time_limit" 
+                                           help="Time limit in minutes (0 = no limit)"/>
+                                    <field name="max_attempts" 
+                                           help="Maximum number of attempts per participant"/>
+                                </group>
+                                <group string="Statistics" col="4">
+                                    <field name="total_questions" readonly="1"/>
+                                    <field name="total_points" readonly="1"/>
+                                    <label for="session_ids" string="Total Attempts"/>
+                                    <div>
+                                        <field name="session_ids" readonly="1" class="o_stat_value" 
+                                               widget="statinfo" options="{'label_field': 'session_count'}"/>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Description" name="description">
+                            <field name="description" widget="html" 
+                                   placeholder="Enter a description for your quiz. This will be shown to participants before they start."/>
+                        </page>
+                        
+                        <page string="Questions" name="questions">
+                            <div class="o_form_field_html">
+                                <div class="alert alert-info" role="alert" invisible="question_ids">
+                                    <i class="fa fa-info-circle" title="Info"/> 
+                                    <strong>No questions yet.</strong> Create questions to get started.
+                                </div>
+                            </div>
+                            
+                            <field name="question_ids" widget="one2many" mode="tree,kanban" 
+                                   context="{'default_quiz_id': active_id}">
+                                <tree editable="bottom" create="true">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="type" required="1"/>
+                                    <field name="name" string="Question"/>
+                                    <field name="points" sum="Total Points"/>
+                                </tree>
+                                <kanban>
+                                    <field name="sequence"/>
+                                    <field name="type"/>
+                                    <field name="name"/>
+                                    <field name="points"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_card">
+                                                <div class="oe_kanban_content">
+                                                    <div class="o_kanban_record_top">
+                                                        <span class="badge badge-pill badge-info">
+                                                            <field name="type"/>
+                                                        </span>
+                                                        <span class="badge badge-pill badge-success float-right">
+                                                            <field name="points"/> pts
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_kanban_record_body">
+                                                        <strong><field name="name"/></strong>
+                                                    </div>
+                                                    <div class="o_kanban_record_bottom">
+                                                        <div class="oe_kanban_bottom_left">
+                                                            <span class="text-muted">Q<field name="sequence"/></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </page>
+                        
+                        <page string="Sessions" name="sessions">
+                            <field name="session_ids" mode="tree" readonly="1">
+                                <tree>
+                                    <field name="participant_name"/>
+                                    <field name="participant_email"/>
+                                    <field name="state"/>
+                                    <field name="total_score"/>
+                                    <field name="percentage" widget="percentage"/>
+                                    <field name="passed" widget="boolean_toggle"/>
+                                    <field name="start_time"/>
+                                    <field name="end_time"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Enhanced Quiz Tree View -->
+    <record id="view_quiz_tree_enhanced" model="ir.ui.view">
+        <field name="name">quiz.quiz.tree.enhanced</field>
+        <field name="model">quiz.quiz</field>
+        <field name="arch" type="xml">
+            <tree string="Quizzes" multi_edit="1">
+                <field name="name" string="Quiz Title"/>
+                <field name="slug"/>
+                <field name="published" widget="boolean_toggle"/>
+                <field name="total_questions" sum="Total Questions"/>
+                <field name="total_points" sum="Total Points"/>
+                <field name="time_limit" string="Time Limit (min)"/>
+                <field name="create_date" string="Created"/>
+                <field name="write_date" string="Last Modified"/>
+                
+                <button name="action_view_public_url" type="object" 
+                        string="View Public URL" icon="fa-external-link" class="btn-link"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Enhanced Quiz Kanban View -->
+    <record id="view_quiz_kanban_enhanced" model="ir.ui.view">
+        <field name="name">quiz.quiz.kanban.enhanced</field>
+        <field name="model">quiz.quiz</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="published"/>
+                <field name="total_questions"/>
+                <field name="total_points"/>
+                <field name="time_limit"/>
+                <field name="slug"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <span class="badge badge-pill float-right" 
+                                          t-att-class="record.published.raw_value ? 'badge-success' : 'badge-secondary'">
+                                        <t t-if="record.published.raw_value">Published</t>
+                                        <t t-else="">Draft</t>
+                                    </span>
+                                </div>
+                                
+                                <div class="o_kanban_record_body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <i class="fa fa-question-circle" title="Questions"/> 
+                                            <field name="total_questions"/> Questions
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="fa fa-star" title="Points"/> 
+                                            <field name="total_points"/> Points
+                                        </div>
+                                    </div>
+                                    <div class="row mt-1">
+                                        <div class="col-12">
+                                            <i class="fa fa-clock-o" title="Time limit"/> 
+                                            <t t-if="record.time_limit.raw_value">
+                                                <field name="time_limit"/> min
+                                            </t>
+                                            <t t-else="">No limit</t>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span class="text-muted">
+                                            /quiz/<field name="slug"/>
+                                        </span>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <button name="action_view_public_url" type="object" 
+                                                class="btn btn-link p-0" title="View Public URL">
+                                            <i class="fa fa-external-link" title="Open public URL"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Enhanced Quiz Search View -->
+    <record id="view_quiz_search_enhanced" model="ir.ui.view">
+        <field name="name">quiz.quiz.search.enhanced</field>
+        <field name="model">quiz.quiz</field>
+        <field name="arch" type="xml">
+            <search string="Search Quizzes">
+                <field name="name" string="Quiz Title"/>
+                <field name="slug"/>
+                <field name="description"/>
+                
+                <filter name="published" string="Published" domain="[('published', '=', True)]"/>
+                <filter name="draft" string="Draft" domain="[('published', '=', False)]"/>
+                <separator/>
+                <filter name="has_questions" string="Has Questions" domain="[('total_questions', '>', 0)]"/>
+                <filter name="no_questions" string="No Questions" domain="[('total_questions', '=', 0)]"/>
+                <separator/>
+                <filter name="timed" string="Timed" domain="[('time_limit', '>', 0)]"/>
+                <filter name="no_time_limit" string="No Time Limit" domain="[('time_limit', '=', 0)]"/>
+                <separator/>
+                <filter name="recent" string="Recent" domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter name="group_by_published" string="Status" context="{'group_by': 'published'}"/>
+                    <filter name="group_by_create_date" string="Created Date" context="{'group_by': 'create_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Enhanced Quiz Actions -->
+    <record id="action_quiz_list_enhanced" model="ir.actions.act_window">
+        <field name="name">Quizzes</field>
+        <field name="res_model">quiz.quiz</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                                       (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_quiz_kanban_enhanced')}),
+                                       (0, 0, {'view_mode': 'tree', 'view_id': ref('view_quiz_tree_enhanced')}),
+                                       (0, 0, {'view_mode': 'form', 'view_id': ref('view_quiz_form_enhanced')})]"/>
+        <field name="search_view_id" ref="view_quiz_search_enhanced"/>
+        <field name="context">{
+            'search_default_published': 1,
+        }</field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_quiz_dashboard" model="ir.actions.act_window">
+        <field name="name">Quiz Dashboard</field>
+        <field name="res_model">quiz.quiz</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_quiz_kanban_enhanced"/>
+        <field name="context">{
+            'search_default_published': 1,
+        }</field>
+    </record>
+
+</odoo>

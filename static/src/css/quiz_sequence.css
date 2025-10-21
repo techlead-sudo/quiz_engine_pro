@@ -1,0 +1,154 @@
+/* Step Sequencing Question Type styling */
+
+.sequence-container {
+    margin-bottom: 20px;
+}
+
+.sequence-instructions {
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.sequence-list {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+.sequence-item {
+    position: relative;
+    background-color: white;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    padding: 15px 70px 15px 15px;
+    transition: background-color 0.2s;
+}
+
+.sequence-item:last-child {
+    margin-bottom: 0;
+}
+
+.sequence-item:hover {
+    background-color: #f5f5f5;
+}
+
+.sequence-item.sortable-ghost {
+    opacity: 0.4;
+    background-color: #c8e6c9;
+}
+
+.sequence-item.moving-up {
+    transform: translateY(-5px);
+    background-color: #e8f4f8;
+}
+
+.sequence-item.moving-down {
+    transform: translateY(5px);
+    background-color: #e8f8f0;
+}
+
+.sequence-content {
+    flex-grow: 1;
+    margin-right: 15px;
+}
+
+.sequence-controls {
+    display: flex;
+    gap: 6px;
+}
+
+.sequence-controls button {
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    line-height: 34px;
+    border-radius: 4px;
+}
+
+.sequence-controls button:focus {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.sequence-controls button:active {
+    transform: scale(1.2);
+}
+
+.sequence-handle {
+    margin-right: 10px;
+    color: #adb5bd;
+    cursor: grab;
+    display: none; /* Hide handle on mobile, use arrows instead */
+}
+
+.sequence-item .step-number {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    background-color: #6c757d;
+    color: white;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.sequence-item .step-label {
+    font-weight: 500;
+}
+
+.sequence-item .step-description {
+    margin-top: 8px;
+    margin-left: 38px;
+    color: #666;
+}
+
+.sequence-buttons {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 5px;
+}
+
+.sequence-buttons button {
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+    .sequence-handle {
+        display: block; /* Show drag handle on desktop */
+    }
+    
+    .sequence-item {
+        padding-right: 90px; /* Make room for controls */
+    }
+}
+
+/* Mobile optimization */
+@media (max-width: 767px) {
+    .sequence-item {
+        padding: 12px 70px 12px 12px;
+        flex-wrap: wrap;
+    }
+    
+    .sequence-item .step-description {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
+        flex-wrap: wrap;
+    }
+    
+    .sequence-item .step-description {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
+}

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Question Category Form View -->
+    <record id="view_question_category_form" model="ir.ui.view">
+        <field name="name">quiz.question.category.form</field>
+        <field name="model">quiz.question.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Category Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="question_count"/>
+                        </group>
+                        <group>
+                            <field name="access_mode" widget="radio"/>
+                            <field name="group_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   invisible="access_mode != 'internal'"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Enter category description here"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Question Category Tree View -->
+    <record id="view_question_category_tree" model="ir.ui.view">
+        <field name="name">quiz.question.category.tree</field>
+        <field name="model">quiz.question.category</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="access_mode"/>
+                <field name="question_count"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Question Category Action -->
+    <record id="action_question_categories" model="ir.actions.act_window">
+        <field name="name">Question Categories</field>
+        <field name="res_model">quiz.question.category</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new question category
+            </p>
+            <p>
+                Categories help organize questions and control access levels.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu entry for Question Categories -->
+    <menuitem id="menu_question_categories"
+              name="Question Categories"
+              parent="menu_quiz_configuration"
+              action="action_question_categories"
+              sequence="20"/>
+
+    <!-- Access Invitation Form View -->
+    <record id="view_quiz_access_invitation_form" model="ir.ui.view">
+        <field name="name">quiz.access.invitation.form</field>
+        <field name="model">quiz.access.invitation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_send_invitation" string="Send Invitation" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="generate_new_token" string="Generate New Token" type="object"
+                            invisible="state not in ('draft', 'sent', 'expired')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,sent,used,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Invitation Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" domain="[('email', '!=', False)]"/>
+                            <field name="email" readonly="1"/>
+                            <field name="token" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="expiration_date"/>
+                            <field name="access_url" widget="url" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Allowed Quizzes">
+                            <field name="quiz_ids">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="published"/>
+                                    <field name="access_mode"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Allowed Categories">
+                            <field name="category_ids">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="access_mode"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Access Invitation Tree View -->
+    <record id="view_quiz_access_invitation_tree" model="ir.ui.view">
+        <field name="name">quiz.access.invitation.tree</field>
+        <field name="model">quiz.access.invitation</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="email"/>
+                <field name="expiration_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Access Invitation Action -->
+    <record id="action_quiz_access_invitations" model="ir.actions.act_window">
+        <field name="name">Access Invitations</field>
+        <field name="res_model">quiz.access.invitation</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new access invitation
+            </p>
+            <p>
+                Invitations allow specific partners to access restricted quizzes.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu entry for Access Invitations -->
+    <menuitem id="menu_quiz_access_invitations"
+              name="Access Invitations"
+              parent="menu_quiz_configuration"
+              action="action_quiz_access_invitations"
+              sequence="25"/>
+</odoo>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access Denied Template -->
+    <template id="quiz_access_denied" name="Quiz Access Denied">
+        <t t-call="website.layout">
+            <div class="container mt-5">
+                <div class="card shadow">
+                    <div class="card-header bg-danger text-white">
+                        <h2>Access Denied</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fa fa-exclamation-triangle mr-2"></i>
+                            <strong>You do not have access to this quiz.</strong>
+                        </div>
+                        <p>This quiz is restricted and requires proper permissions to access.</p>
+                        
+                        <t t-if="login_required">
+                            <div class="mt-4">
+                                <p>Please log in first or provide a valid access token.</p>
+                                <a t-attf-href="/web/login?redirect=#{request.httprequest.path}" class="btn btn-primary">
+                                    <i class="fa fa-sign-in mr-1"></i> Log in
+                                </a>
+                            </div>
+                        </t>
+                        
+                        <div class="mt-4">
+                            <h5>Access Options:</h5>
+                            <ul>
+                                <li>Log in with an account that has access</li>
+                                <li>Use a valid invitation token</li>
+                                <li>Contact the administrator for access</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Form for token-based access -->
+                        <div class="mt-4" t-if="quiz">
+                            <h5>Have an access token?</h5>
+                            <form t-attf-action="/quiz/#{quiz.slug}" method="get" class="form-inline">
+                                <div class="form-group mr-2">
+                                    <label for="token" class="sr-only">Access Token</label>
+                                    <input type="text" name="token" id="token" class="form-control" 
+                                           placeholder="Enter your access token" required="required"/>
+                                </div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-key mr-1"></i> Access Quiz
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/quiz" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left mr-1"></i> Back to Quizzes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,31 @@
+body {
+  background: linear-gradient(135deg, #aee9f7 0%, #f7eaff 100%);
+  font-family: 'M PLUS Rounded 1c', 'Arial', sans-serif;
+  color: #2e3a4d;
+}
+.miku-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 32px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px #b2eaff;
+}
+h2, h1 {
+  color: #39c5bb;
+  font-family: 'M PLUS Rounded 1c', 'Arial', sans-serif;
+}
+.btn-miku {
+  background: #39c5bb;
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  font-size: 18px;
+  padding: 10px 32px;
+  margin-top: 24px;
+  text-decoration: none;
+  display: inline-block;
+}
+a.btn-miku:hover {
+  background: #1e9bb8;
+}

@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <!-- Main Question Editor Template -->
+    <t t-name="quiz_engine_pro.question_editor">
+        <div class="question-editor">
+            <div class="card">
+                <div class="card-header">
+                    <h4>
+                        <i class="fa fa-question-circle"></i>
+                        <span t-if="widget.question_id">Edit Question</span>
+                        <span t-else="">New Question</span>
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <div class="error-container"></div>
+                    
+                    <form class="question-form">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="question_name">Question Title *</label>
+                                    <input type="text" id="question_name" class="form-control" 
+                                           placeholder="Enter question title" required="true"/>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="question_type">Question Type *</label>
+                                    <select id="question_type" class="form-control" required="true">
+                                        <option value="multiple_choice">Multiple Choice</option>
+                                        <option value="true_false">True/False</option>
+                                        <option value="fill_blank">Fill in the Blank</option>
+                                        <option value="drag_drop">Drag and Drop</option>
+                                        <option value="dropdown">Dropdown</option>
+                                        <option value="matrix">Matrix</option>
+                                        <option value="sequence">Sequence</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Question Content *</label>
+                            <div class="question-content"></div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="question_points">Points</label>
+                                    <input type="number" id="question_points" class="form-control" 
+                                           min="0" step="0.1" value="1"/>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="question_explanation">Explanation (Optional)</label>
+                                    <textarea id="question_explanation" class="form-control" 
+                                              rows="2" placeholder="Explain the correct answer"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Answer Options</label>
+                            <div class="options-container"></div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-info preview-question">
+                                <i class="fa fa-eye"></i> Preview
+                            </button>
+                            <button type="button" class="btn btn-success save-question">
+                                <i class="fa fa-save"></i> Save Question
+                            </button>
+                            <button type="button" class="btn btn-secondary cancel-edit">
+                                <i class="fa fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </t>
+    
+    <!-- Question Preview Template -->
+    <t t-name="quiz_engine_pro.question_preview">
+        <div class="question-preview">
+            <div class="question-header">
+                <h5><t t-esc="question.name"/></h5>
+                <span class="badge badge-primary">
+                    <t t-esc="question.type"/>
+                </span>
+                <span class="badge badge-info float-right">
+                    <t t-esc="question.points"/> pts
+                </span>
+            </div>
+            
+            <div class="question-content-preview">
+                <t t-raw="question.content"/>
+            </div>
+            
+            <div class="question-options-preview">
+                <t t-if="question.type === 'multiple_choice'">
+                    <t t-call="quiz_engine_pro.preview_multiple_choice"/>
+                </t>
+                <t t-elif="question.type === 'true_false'">
+                    <t t-call="quiz_engine_pro.preview_true_false"/>
+                </t>
+                <t t-elif="question.type === 'fill_blank'">
+                    <t t-call="quiz_engine_pro.preview_fill_blank"/>
+                </t>
+                <t t-elif="question.type === 'drag_drop'">
+                    <t t-call="quiz_engine_pro.preview_drag_drop"/>
+                </t>
+                <t t-elif="question.type === 'dropdown'">
+                    <t t-call="quiz_engine_pro.preview_dropdown"/>
+                </t>
+                <t t-elif="question.type === 'matrix'">
+                    <t t-call="quiz_engine_pro.preview_matrix"/>
+                </t>
+                <t t-elif="question.type === 'sequence'">
+                    <t t-call="quiz_engine_pro.preview_sequence"/>
+                </t>
+            </div>
+            
+            <div class="question-explanation-preview" t-if="question.explanation">
+                <strong>Explanation:</strong>
+                <p><t t-esc="question.explanation"/></p>
+            </div>
+        </div>
+    </t>
+    
+    <!-- Preview Templates for Each Question Type -->
+    <t t-name="quiz_engine_pro.preview_multiple_choice">
+        <div class="multiple-choice-preview">
+            <t t-foreach="question.options" t-as="option">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" disabled="true"
+                           t-att-name="'question_' + question.id" 
+                           t-att-id="'option_' + option_index"/>
+                    <label class="form-check-label" t-att-for="'option_' + option_index">
+                        <t t-esc="option.text"/>
+                        <span t-if="option.is_correct" class="badge badge-success ml-2">Correct</span>
+                    </label>
+                </div>
+            </t>
+        </div>
+    </t>
+    
+    <t t-name="quiz_engine_pro.preview_true_false">
+        <div class="true-false-preview">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" disabled="true" name="tf_preview" id="tf_true"/>
+                <label class="form-check-label" for="tf_true">
+                    True
+                    <span t-if="question.correct_answer === 'true'" class="badge badge-success ml-2">Correct</span>
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" disabled="true" name="tf_preview" id="tf_false"/>
+                <label class="form-check-label" for="tf_false">
+                    False
+                    <span t-if="question.correct_answer === 'false'" class="badge badge-success ml-2">Correct</span>
+                </label>
+            </div>
+        </div>
+    </t>
+    
+    <t t-name="quiz_engine_pro.preview_fill_blank">
+        <div class="fill-blank-preview">
+            <div class="form-group">
+                <input type="text" class="form-control" disabled="true" placeholder="Your answer here"/>
+            </div>
+            <div class="correct-answers-preview">
+                <strong>Correct Answers:</strong>
+                <ul>
+                    <t t-foreach="question.correct_answers" t-as="answer">
+                        <li><t t-esc="answer"/></li>
+                    </t>
+                </ul>
+            </div>
+        </div>
+    </t>
+    
+    <t t-name="quiz_engine_pro.preview_drag_drop">
+        <div class="drag-drop-preview">
+            <div class="alert alert-info">
+                <i class="fa fa-info-circle"></i>
+                Drag and drop functionality will be available in the actual quiz.
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Draggable Items:</h6>
+                    <div class="draggable-items-preview">
+                        <t t-foreach="question.draggable_items" t-as="item">
+                            <span class="badge badge-secondary mr-2 mb-2">
+                                <t t-esc="item"/>
+                            </span>
+                        </t>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Drop Zones:</h6>
+                    <div class="drop-zones-preview">
+                        <t t-foreach="question.drop_zones" t-as="zone">
+                            <div class="drop-zone-preview mb-2">
+                                <strong><t t-esc="zone.label"/>:</strong>
+                                <div class="zone-placeholder">Drop items here</div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+    
+    <t t-name="quiz_engine_pro.preview_dropdown">
+        <div class="dropdown-preview">
+            <div class="question-template-preview">
+                <t t-raw="question.template_with_dropdowns"/>
+            </div>
+        </div>
+    </t>
+    
+    <t t-name="quiz_engine_pro.preview_matrix">
+        <div class="matrix-preview">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <t t-foreach="question.columns" t-as="column">
+                                <th><t t-esc="column"/></th>
+                            </t>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="question.rows" t-as="row">
+                            <tr>
+                                <td><strong><t t-esc="row"/></strong></td>
+                                <t t-foreach="question.columns" t-as="column">
+                                    <td>
+                                        <input type="radio" disabled="true" 
+                                               t-att-name="'matrix_' + row_index"/>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+    
+    <t t-name="quiz_engine_pro.preview_sequence">
+        <div class="sequence-preview">
+            <div class="alert alert-info">
+                <i class="fa fa-info-circle"></i>
+                Items will be randomized in the actual quiz. Drag to reorder.
+            </div>
+            <div class="sequence-items-preview">
+                <t t-foreach="question.sequence_items" t-as="item">
+                    <div class="sequence-item-preview">
+                        <span class="sequence-number"><t t-esc="item_index + 1"/>.</span>
+                        <span class="sequence-text"><t t-esc="item"/></span>
+                        <i class="fa fa-grip-vertical ml-2"></i>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+    
+    <!-- Quiz Dashboard Template -->
+    <t t-name="quiz_engine_pro.dashboard">
+        <div class="quiz-dashboard">
+            <div class="dashboard-header">
+                <h2><i class="fa fa-tachometer"></i> Quiz Dashboard</h2>
+                <button class="btn btn-primary" data-action="create_quiz">
+                    <i class="fa fa-plus"></i> New Quiz
+                </button>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fa fa-clipboard-list"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3><t t-esc="stats.total_quizzes"/></h3>
+                                <p>Total Quizzes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fa fa-question-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3><t t-esc="stats.total_questions"/></h3>
+                                <p>Total Questions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fa fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3><t t-esc="stats.total_participants"/></h3>
+                                <p>Total Participants</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fa fa-chart-bar"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3><t t-esc="stats.average_score"/>%</h3>
+                                <p>Average Score</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-content">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Recent Quizzes</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="quiz-list">
+                                    <!-- Quiz list will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Quick Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="quick-actions">
+                                    <a href="#" class="btn btn-outline-primary btn-block mb-2" 
+                                       data-action="create_quiz">
+                                        <i class="fa fa-plus"></i> Create New Quiz
+                                    </a>
+                                    <a href="#" class="btn btn-outline-secondary btn-block mb-2" 
+                                       data-action="import_questions">
+                                        <i class="fa fa-upload"></i> Import Questions
+                                    </a>
+                                    <a href="#" class="btn btn-outline-info btn-block mb-2" 
+                                       data-action="analytics">
+                                        <i class="fa fa-chart-line"></i> View Analytics
+                                    </a>
+                                    <a href="#" class="btn btn-outline-warning btn-block" 
+                                       data-action="settings">
+                                        <i class="fa fa-cog"></i> Settings
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

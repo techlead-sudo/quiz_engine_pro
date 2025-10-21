@@ -1,0 +1,101 @@
+/* Passage Question Styles */
+
+.passage-container {
+    margin-bottom: 30px;
+}
+
+.passage-content {
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    line-height: 1.6;
+}
+
+.passage-text {
+    font-size: 1rem;
+    color: #333;
+}
+
+.sub-question {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.sub-question-text {
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.sub-question-choices {
+    margin-left: 10px;
+}
+
+.question-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.prev-sub-question,
+.next-sub-question {
+    min-width: 100px;
+}
+
+.sub-question-counter {
+    font-weight: 600;
+    color: white;
+}
+
+/* Improved form elements */
+.sub-question textarea.form-control {
+    border: 1px solid #ced4da;
+    padding: 10px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.sub-question textarea.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Improved choice styling */
+.sub-question-choices .form-check {
+    padding-left: 30px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.sub-question-choices .form-check-input {
+    position: absolute;
+    margin-top: 0.3rem;
+    margin-left: -1.5rem;
+}
+
+.sub-question-choices .form-check-label {
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .passage-container {
+        flex-direction: column;
+    }
+    
+    .col-md-6 {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .passage-content {
+        max-height: 300px;
+    }
+}

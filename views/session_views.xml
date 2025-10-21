@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Session Tree View -->
+    <record id="view_session_tree" model="ir.ui.view">
+        <field name="name">quiz.session.tree</field>
+        <field name="model">quiz.session</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="participant_name"/>
+                <field name="quiz_id"/>
+                <field name="state"/>
+                <field name="total_score"/>
+                <field name="percentage"/>
+                <field name="passed"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Session Form View -->
+    <record id="view_session_form" model="ir.ui.view">
+        <field name="name">quiz.session.form</field>
+        <field name="model">quiz.session</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="participant_name"/>
+                            <field name="quiz_id"/>
+                            <field name="state"/>
+                        </group>
+                        <group>
+                            <field name="total_score"/>
+                            <field name="percentage"/>
+                            <field name="passed"/>
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
